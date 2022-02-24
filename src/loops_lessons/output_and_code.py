@@ -20,6 +20,25 @@ $  python3 output_and_code.py path/to/demo/python/file.py
 import sys
 
 
+def _reply(msg):
+	global latest_input
+	latest_input = input(f"{msg} (y/n)\n>  ").lower()
+	if latest_input == 'n':
+		sys.exit()
+	return latest_input == 'y'
+
+
+def reply_on_see_the_output():
+	return _reply("Would you like to see the output?")
+
+
+def reply_on_see_next_demo():
+	return _reply("Would you like to see the next demo?")
+
+
+last_input = None
+
+
 num_arguments = len(sys.argv)
 
 print(f"You provided {num_arguments} arguments")
@@ -42,16 +61,22 @@ except:
 	print(f"Could not read {python_filename}. Please enter a valid python file")
 	sys.exit(-1)
 
-
 if snippets == []:
 	print("Didn't find any snippets")
 	sys.exit(-1)
 
 for snippet in snippets:
 
+	while not reply_on_see_next_demo():
+		pass
+
 	print("# Another example of python code")
 	print()
 	print(snippet)
+
+	while not reply_on_see_the_output():
+		pass
+
 	print("\n\n\n# The code above gives the following output:")
 	print()
 	exec(snippet)

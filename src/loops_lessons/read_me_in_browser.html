@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		How to run Demo
+	</title>
+</head>
+
+<style type="text/css">
+
+	body {
+		font-family: "Comic Sans MS", "Comic Sans";
+		font-weight: bold;
+		font-size: 18pt;
+	}
+	
+	#bgpage {
+		background-color: #ff8ae0;
+
+</style>
+
+<script type="text/javascript">
+
+function getDarkColor() {
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += Math.floor(Math.random() * 9);
+    }
+    return color;
+}
+
+function changeColor() {
+	var vargbs=document.getElementsByClassName("vargb");
+
+	for (var i = vargbs.length - 1; i >= 0; i--) {
+
+		vargbs[i].style.color = getDarkColor();
+	}
+
+	setTimeout(changeColor, 1000);
+}
+
+function changeColor() {
+	var vargbs=document.getElementsByClassName("vargb");
+
+	for (var i = vargbs.length - 1; i >= 0; i--) {
+
+		vargbs[i].style.color = getDarkColor();
+	}
+
+	setTimeout(changeColor, 1000);
+}
+
+</script>
+
+<body id="bgpage">
+
+	<h1>
+		<span class="vargb">How</span>
+		<span class="vargb">to</span>
+		<span class="vargb">view</span>
+		<span class="vargb">demo</span>
+		<span class="vargb">with</span>
+		<bold class="vargb">output_and_code.py</bold>
+		<span class="vargb">!?</span>
+	</h1>
+
+	<p class="vargb">
+		Invoke the script by typing the command:
+	</p>
+	<pre class="vargb"><code>
+		$ python(3?) output_and_code.py for_loops.py
+	</code></pre>
+
+	<span class="vargb">
+		The script will display the code and its output and will ask you if you want to continue and see the next demonstrations
+	</span>
+
+	<p class="vargb">
+		Type <pre class="vargb"><code>y</code></pre> to go to the next demo
+	</p>
+
+	<span class="vargb">
+		That's it!
+	</span>
+
+	<br>
+	<br>
+
+	<img src="https://media2.giphy.com/media/LMt9638dO8dftAjtco/giphy.gif?cid=5a38a5a25cty1c4yxb3zhki6do29hwg7lht5u481a2axskjg&rid=giphy.gif&ct=s" alt="pygif" style="width:100px;">
+
+</body>
+
+<script type="text/javascript">
+	changeColor();
+</script>
+
+</html>

@@ -226,10 +226,25 @@ pretty_print_separation_between_demos_dont_pay_much_attention_to_me()
 
 
 # "else" at the end of the loop executes its code if loop didn't run into "break" statement
+
+
+print("without break")
+
 for x in range(6):
 	print(x)
 	# if x == 3:
 	# 	break
+else:
+	print("Finally finished!")
+
+
+print("with break")
+
+for x in range(6):
+	print(x)
+	if x == 3:
+		print("breaking!")
+		break
 else:
 	print("Finally finished!")
 
