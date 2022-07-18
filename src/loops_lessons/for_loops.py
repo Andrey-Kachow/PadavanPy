@@ -35,17 +35,17 @@ pretty_print_separation_between_demos_dont_pay_much_attention_to_me()
 
 
 # range() function for the sequence of numbers
-print( range )
+print(range)
 
-print( range(10) )
+print(range(10))
 
-print( list( range(10) ) )
+print(list(range(10)))
 
-print( list(range(3, 10)) )
+print(list(range(3, 10)))
 
-print( list(range(0, 10, 2)) )
+print(list(range(0, 10, 2)))
 
-print( list(range(30)) )
+print(list(range(30)))
 
 
 
@@ -112,8 +112,7 @@ pretty_print_separation_between_demos_dont_pay_much_attention_to_me()
 
 # Two variables "for" loop
 for y, x in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
-	print(x)
-	print(y)
+	print(x, y)
 	print()
 
 
@@ -173,6 +172,8 @@ pretty_print_separation_between_demos_dont_pay_much_attention_to_me()
 
 
 
+
+big_dic = {1: 5, 2: 10}
 
 
 # Iterating thruough the list of dictionary keys

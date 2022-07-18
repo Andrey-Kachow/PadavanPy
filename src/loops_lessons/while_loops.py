@@ -132,7 +132,7 @@ pretty_print_separation_between_demos_dont_pay_much_attention_to_me()
 
 
 # Bellow are the snippets of code which will cause printing the same message other and other
-# again and again. Because the condition expression alvays evalates to true
+# again and again. Because the condition expression always evalates to true
 """
 
 >>> True
