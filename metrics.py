@@ -13,7 +13,7 @@ languages = {
 	".h": "C header files",
 	".html": "HTML",
 	".kt": "Kotlin",
-    ".java": "JavaScript",
+    ".java": "Java",
     ".css": "CSS",
     ".js": "JavaScript",
     ".sh": "Bash scripts",
