@@ -1,0 +1,111 @@
+Implement conversion functions from number to string and from string to number.
+
+When implementing conversion algorithms, no library functions should be used. You cannot use data types larger than int (for example, long long).
+
+1) Function
+int strtoi (const char *str, char **p, int *ret)
+parses the string str, converts it to an int, which is returned by the ret pointer. In case of success, the function returns 1, in case of error - 0. The function must check the correctness of the characters in the string. The pointer p (if it is not null) returns a pointer to the first character of the string containing an invalid value.
+An error is the case when a string specifies a number (up to the null character or up to the first invalid character) that does not fit into an int. Those. the function must detect int overflow and return 0 in this case.
+The number system must be determined from the string type:
+if string starts with "0x", then hexadecimal;
+if the string starts with "0", then octal;
+if the string starts with "b", then it is binary;
+otherwise decimal.
+
+2) Function
+int my_itoa (char *buf, int bufSize, int value, int p)
+converts the passed number value into a p-ary character string, which it writes to the buffer buf of size bufSize. Returns the number of characters written to the buffer (no more than bufSize). If the buf argument is zero, then you need to calculate the required buffer size and return it.
+
+Write a program that demonstrates how these functions work.
+
+REQUIREMENTS:
+
+
+
+2) Well documented code. Use the attached files as examples of docstrings I need for every non static function in the module.
+
+
+
+3) Style. use snake_case for everything except CONSTANTS which should be UPPER_CASE_LIKE_THIS
+
+preferably size 2 idndents and indents using spaces
+
+/**/ - comments for documentation. // - only for extremely important inline notes
+
+
+pointers must be like this:
+
+  int *pointer;
+
+not like this:
+  
+  int* pointer;
+
+for functions like this is also acceptable:
+
+  int * pointer_func(void) {
+    return NULL;
+  }
+
+
+GOOD:
+
+
+
+for (...) {
+  ...
+}
+
+
+
+BAD:
+
+
+
+for (...)
+{
+  ...
+}
+
+Example of function doc comments:
+
+/*
+  Create a list, which is populated with values of the given array.
+  @param arr is the array of arbitrary type values
+  @param arr_size is the size of the array arr.
+  @retutns a pointer to a new created list.
+*/
+list_t * list_create_from_arr(void **arr, int arr_size) {
+  list_t *new_list = list_create();
+  if (new_list == NULL) {
+    return NULL;
+  }
+  for (int i = 0; i < arr_size; i++) {
+    list_push_tail(new_list, arr[i]);
+  }
+  return new_list;
+}
+
+
+
+Doc strings for functions should be in the implementation file, not in the header file
+
+
+
+4) Write unit tests. Ideally for every non static function of the module.
+
+
+
+5) for every non-trivial idea or implementation detail you come up with, please write a note in a special notes.txt file, so I can read them and be able to explain them to my students.
+
+
+
+6) Write a Makefile which will let me simply do the following:
+
+
+
+Run> make       #- for building
+
+Run> make clean #- for removing object files and junk
+
+Run> make test  #- for running all the unit tests after running make.
