@@ -1,6 +1,8 @@
 mainbin
 *.zip
 *.o
+trd_test.html
+
 
 # PYTHON below
 
