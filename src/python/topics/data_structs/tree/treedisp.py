@@ -258,6 +258,9 @@ class TreeDisplayArrayHTML(TreeDisplay):
     # def display(self):
     #     self.print()
 
+def display_tree(tree):
+    TreeDisplayArrayHTML(tree).display()
+
 
 def main():
     tree = BinaryTree(0)
