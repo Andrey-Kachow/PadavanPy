@@ -23,7 +23,7 @@
 
 
 
-# # Variables in the global scope are called global variables. 
+# # Variables in the global scope are called global variables.
 # def variable_confusion():
 # 	jopa = 10  # local jopa
 # 	print(jopa)
@@ -60,34 +60,6 @@
 
 
 
-# # Functions can have arguments (or they are also called papameters)
-# def popov_family(name):
-# 	print(name.capitalize() + " " + "Popov")
-
-# popov_family("andrey")
-# popov_family("Kirill")
-# # popov_family("Nora") # ?
-
-
-
-
-
-
-# # Keyword argument syntax
-# def Adiyan_Soldatov_family(name):
-# 	if name.lower() in ["tatiana", "tatyana"]:
-# 		print(name.capitalize() + " " + "Soldatova")
-# 	else:
-# 		print(name.capitalize() + " " + "Adiyan")
-
-# Adiyan_Soldatov_family(name="Nora")
-
-# Example with print()
-# print("a", "b", "c", sep="--", end="-<>-\n")
-
-
-
-
 
 
 
@@ -108,7 +80,7 @@
 
 # # Arbitrary keyword arguments   **kwargs
 # def vegetable_description(**properties):
-# 	print(properties['color'].capitalize(), properties['quality'], properties['taste'], properties['name']) 
+# 	print(properties['color'].capitalize(), properties['quality'], properties['taste'], properties['name'])
 
 # vegetable_description(name="Banana", quality="fresh", taste="sweet", color="yellow")
 # print()

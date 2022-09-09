@@ -28,6 +28,7 @@ class BinaryTree:
         return self.left is None and self.right is None
 
     def depth(self):
+        # TODO
         if self.is_leaf():
             return 1
         return 1 + max(self.left.depth(), self.right.depth())
@@ -81,10 +82,11 @@ class BinaryTree:
         print(self.value, end=' ')
 
     def contains(self, key):
+        # TODO
         if self.value == key:
             return True
-        if self.left in not None and self.left.contains(key):
+        if self.left is not None and self.left.contains(key):
             return True
-        if self.right in not None and self.right.contains(key):
+        if self.right is not None and self.right.contains(key):
             return True
         return False
