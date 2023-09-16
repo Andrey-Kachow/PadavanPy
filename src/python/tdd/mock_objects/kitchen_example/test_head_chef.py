@@ -14,6 +14,9 @@ class MyMockery:
     def add_expectations(self, expectations):
         self.expectations += expectations
 
+    def check_everything(self):
+        assert self.actuals == list(filter(lambda x: not isinstance(x, Returns), self.expectations))
+
     def check_call(self):
         self.exp_index += 1
         self.act_index += 1
@@ -85,6 +88,8 @@ def test_head_chef_delegates_deserts_to_pastry_chef():
     # Actual Scenario
     head_chef.order(chicken, tart)
     # End of actual Scenario
+    context.check_everything()
+    
 
 
 def test_head_chef_asks_waiter_to_serve_desert_when_ready():
@@ -101,6 +106,8 @@ def test_head_chef_asks_waiter_to_serve_desert_when_ready():
     # Actual Scenario
     head_chef.customer_ready_for(tart)
     # End of actual Scenario
+    context.check_everything()
+
 
 
 def test_head_chef_does_not_ask_waiter_to_serve_desert_when_not_ready():
@@ -116,3 +123,4 @@ def test_head_chef_does_not_ask_waiter_to_serve_desert_when_not_ready():
     # Actual Scenario
     head_chef.customer_ready_for(tart)
     # End of actual Scenario
+    context.check_everything()

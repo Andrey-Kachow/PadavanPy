@@ -255,8 +255,8 @@ class TreeDisplayArrayHTML(TreeDisplay):
         """
 
     # UNCOMMENT IF YOU WANT TO SEE PRINT
-    # def display(self):
-    #     self.print()
+    def display2(self):
+        self.print()
 
 def display_tree(tree):
     TreeDisplayArrayHTML(tree).display()
@@ -267,7 +267,7 @@ def main():
     for i in range(256):
         tree.insert(random.randint(33, 127))
     disp = TreeDisplayArrayHTML(tree)
-    disp.display()
+    disp.display2()
 
 
 if __name__ == '__main__':
