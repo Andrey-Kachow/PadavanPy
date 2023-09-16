@@ -23,9 +23,10 @@ languages = {
 
 lang_stat = dict(zip(languages.keys(), [0] * len(languages)))
 
-DIRNAME, FILENAME = os.path.split(os.path.abspath(__file__))
+DIRNAME = '.'
+if len(sys.argv) > 1:
+    DIRNAME = sys.argv[1]
 
-SCR_DIR = os.path.join(DIRNAME, "src")
 
 def traverse(root_dir, languages):
     for path in os.listdir(root_dir):
@@ -52,7 +53,7 @@ def traverse(root_dir, languages):
                 print(path, "-", count)
 
 print()
-traverse(SCR_DIR, languages)
+traverse(DIRNAME, languages)
 print()
 
 lang_stat = dict(filter(lambda p: p[1] > 0, lang_stat.items()))
