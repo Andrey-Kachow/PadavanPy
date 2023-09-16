@@ -18,8 +18,7 @@ static inline bool is_tail (struct list_elem *elem) {
 }
 
 /* Initializes LIST as an empty list. */
-void
-list_init (struct list *list) {
+void list_init (struct list *list) {
   list->head.prev = NULL;
   list->head.next = &list->tail;
   list->tail.prev = &list->head;
