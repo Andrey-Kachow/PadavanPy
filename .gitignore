@@ -3,6 +3,8 @@ mainbin
 *.o
 trd_test.html
 logs.html
+*.exe
+*.obj
 
 # BEGIN JAVA
 

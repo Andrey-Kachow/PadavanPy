@@ -1,15 +1,19 @@
 #include <stdio.h>
 
 void sum(int first, int second, int *result) {
+    // todo
 }
 
 void quot_rem(int dividiend, int divisor, int *output_quotient, int *output_remainder) {
+    // todo
 }
 
 void challenge_quot_rem(int dividiend, int divisor, int *output_quotient, int *output_remainder) {
+    // todo
 }
 
 void string_copy(char *source, char *destination) {
+    // todo
 }
 
 /**
