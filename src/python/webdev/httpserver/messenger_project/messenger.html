@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Andrey Popov</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+
+    <!-- The code below is linking to PyScript assets -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2022.12.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2022.12.1/pyscript.js"></script>
+    <!-- The code that is linking to PyScript ended. Now we can use Python on client side :) -->
+
+  </head>
+  <body>
+    <h1>Welcome to My Messenger!</h1>
+    <a href="index.html">
+        Go back to the main page!
+    </a>    
+
+    <div>
+        <p>Chat goes here:</p>
+    </div>
+    <input
+        id="recipient-address"
+        type="text" 
+        placeholder="Please enter the recipient URL"
+        />
+    </input>
+    <input 
+        id="message-text"
+        type="text" 
+        placeholder="Please enter your message"
+        style="height: 100px;"
+        />
+    </input>
+    <button py-click="handle_sending_message()">
+        Send Message!
+    </button>
+    <py-script>
+        from js import document
+        import requests
+
+        def handle_sending_message():
+            
+            recipient_address = document.getElementById("recipient-address")
+            message_text = document.getElementById("message-text").text
+
+            load = {
+                "message": message_text
+            }
+
+            message_destination_url = "http://" + recipient_address.text + "/send"
+            requests.get(message_destination_url, load)
+    </py-script>
+
+  </body>
+</html>
+

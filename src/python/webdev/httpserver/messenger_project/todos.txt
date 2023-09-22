@@ -1,0 +1,5 @@
+Ok, I did some messenger code, but it requires more hacky sollutions, that might not be friendly enough for beginners.
+TODOs:
+    - Implement a simplier lesson plan.
+    - Finish messenger as a Proof of Concept 
+
