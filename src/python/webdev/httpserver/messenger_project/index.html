@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Andrey Popov</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+
+    <!-- The code below is linking to PyScript assets -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2022.12.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2022.12.1/pyscript.js"></script>
+    <!-- The code that is linking to PyScript ended. Now we can use Python on client side :) -->
+
+  </head>
+  <body>
+    <h1>Welcome to My Website</h1>
+    
+    <py-script>
+        display("Hello World")
+        for fruit in ["Apple", "Banana", "Pear", "Pineapple"]:
+            print(fruit)
+            display(fruit)
+    </py-script>
+    <!-- That was very cool -->
+    
+    <!-- Now let's call the outer python file! -->
+    <py-script src="./action.py">
+        <!-- Nothing to put here... -->
+    </py-script>
+
+
+    <div style="background: red; padding: 20px;">
+        today is
+        <py-script>
+            from datetime import datetime
+                        
+            display(str(datetime.now()))
+        </py-script>
+        and it is amazing
+    </div>
+    
+
+  </body>
+</html>
+
