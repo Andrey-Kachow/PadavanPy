@@ -1,16 +1,5 @@
 import sys, os, subprocess, time
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 print("Running tests...")
 
 executable_agrs = sys.argv[1:]
@@ -27,31 +16,51 @@ opererations = {
     "+": "+",
     "*": "*",
     "-": "-",
-    "/": "/",
+    "/": "//",
     "pow": "**"
 }
 
 def print_fail():
-    print(bcolors.FAIL + "FAIL" + bcolors.ENDC)
+    print("FAIL")
 
 def run_utility(f, s, op):
+    answer = "error"
     try:
-        expected = f + opererations[op] + s
-        output = subprocess.check_output(executable_agrs + ["--calculate"] + [f,op,s])
-        assert expected == int(output)
+        expected = eval(str(f) + " " + opererations[op] + " " + str(s))
+        output = subprocess.check_output(executable_agrs + ["--calculate"] + [str(f),op,str(s)])
+        answer = int(output.decode("utf-8"))
+        assert expected == answer
     except:
         print_fail()
-        print(f"Something went wrong on utility mode input: {f} {op} {s}")
+        print(f"Something went wrong on utility mode input: {f} {op} {s}. You got {answer}")
+        sys.exit()
 
-def run_interactive(f, s, op):
-    pass
-
-for first_op in range(1, 10):
-    for second_op in range(1, 10):
+count = 1
+for first_op in range(1, 6):
+    for second_op in range(1, 6):
         for op in opererations:
-
+            print(f"Running Utility test {count} of 125", end=" ", flush=True)
             run_utility(first_op, second_op, op)
-            run_interactive(first_op, second_op, op)
+            print("PASS")
+            count += 1
 
+print("All cmd util tests passed. Now let's run interactive test")
 
-print(bcolors.OKGREEN + "PASS" + bcolors.ENDC)
+content = "1\n+\n10\nyes\n2\n*\n2\nyes\n44\n/\n2\nyes\n4\npow\n4\nno\n"
+output = ""
+
+try:
+    with open("temporary.txt", "w") as f:
+        f.write(content)
+        output = subprocess.check_output(executable_agrs, input=content.encode("utf-8")).decode("utf-8")
+        assert "Answer is 11." in output, output
+        assert "Answer is 4." in output, output
+        assert "Answer is 22." in output, output
+        assert "Answer is 256." in output, output
+except Exception as e:
+    print("For input:")
+    print(content)
+    print("\nyou had output:")
+    sys.exit()
+
+print("PASS")
