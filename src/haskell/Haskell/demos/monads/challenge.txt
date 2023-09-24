@@ -1,0 +1,58 @@
+Part I
+
+Implement a cooler monad, a version of LogProg called IOProg
+
+which holds a program value and also carries
+Input and Output buffers a.k. strings to that program.
+
+data IOProg a = Broken String | InOut a String String
+
+where the `Broken String` represents the failed program with output message
+
+and `InOut a String String` represents a working program with
+first string representing Input and second String representing Output
+
+Notice that buffers are no longer a list off strings but a sequence o chars
+which will be readable and writable
+
+Requirements
+
+1) IOProg must be an instance of Functor, Applicative and Monad
+
+2) IO Prog must also implement the following functions, (or similiar)
+
+ioReadChar :: a -> IOProg Char   (or different type signature. up to you)
+ioReadLine :: a -> IOProg String (again can be different)
+
+which read the char and line respectively from the input string
+
+such that some (IOProg ... "abc" "def")
+  ---ioReadChar--->
+    (IOProg 'a' "bc" "def")
+
+such that some (IOProg ... "Hellon\n" "def")
+  ---ioReadLine--->
+    (IOProg "Hello\n" "" "def")
+
+
+ioWriteChar :: Char -> IOProg ()
+ioWriteLine :: String -> IOProg ()
+
+
+such that some (IO Prog 'a' "bc" "def")
+  ---ioWriteChar--->
+    (IOProg () "bc" "defa")
+
+such that some (IO Prog "Hello World\n" "" "")
+  ---ioWriteLine--->
+    (IO Prog () "" "Hello World\n")
+
+
+Send the code to pass Part I and get the Part II task.
+
+The part II will be just to write a bespoke imperative program with
+IO over IOProg with strings.
+This task will differ from challenger to challenger and successful
+challengers will win a prize!!!
+
+Good Luck!

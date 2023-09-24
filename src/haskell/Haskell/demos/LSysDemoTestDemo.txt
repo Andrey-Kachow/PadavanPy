@@ -1,0 +1,12 @@
+isPalindrome [] == True
+isPalindrome [1] == True
+isPalindrome [1, 1] == True
+isPalindrome [1, 2, 1] == True
+isPalindrome [1, 2, 2, 1] == True
+isPalindrome [1, 2, 3, 2, 1] == True
+isPalindrome [1, 2, 3, 2, 4] == False
+isPalindrome [1, 3, 3, 2, 1] == False
+isPalindrome [0, 2, 3, 2, 1] == False
+isPalindrome [1, 2, 3, 4] == False
+isPalindrome [1, 2, 3] == False
+isPalindrome [1, 2] == False
