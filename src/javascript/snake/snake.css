@@ -1,0 +1,38 @@
+body {
+  background: #ab9d6f;
+}
+
+h1 {
+  text-align: center;
+  margin: 0;
+  color: #dbceaf;
+}
+
+#snake-board {
+  background: red; /* Red is bad! We should not see it but we do */
+  margin: 0 auto;
+  border: 1px solid #ab9d6f;
+}
+
+.snake-board-row {
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.snake-board-cell {
+  border: 1px solid #ab9d6f;
+  box-sizing: border-box;
+}
+
+.empty-cell {
+  background: #dbceaf;
+}
+
+.snake-body-cell {
+  background: #ee2211;
+}
+
+.food-cell {
+  background: #22ee11;
+}
