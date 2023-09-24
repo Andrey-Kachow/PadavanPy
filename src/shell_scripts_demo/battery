@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+
+echo "Battery stats:"
+upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep "state"
+

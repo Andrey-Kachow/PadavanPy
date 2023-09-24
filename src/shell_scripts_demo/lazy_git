@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+mkdir ppts
+
+cd ppts
+
+echo "Cloning my PPTs"
+
+for ppt in pc2122 ah3722 cm1122 bm222 jm1922 kss22 mas222 at2222 sx2022
+do
+	git clone "git@gitlab.doc.ic.ac.uk:lab2223_spring/"$1"_"$ppt".git"
+done
+
+echo "Done cloning"
