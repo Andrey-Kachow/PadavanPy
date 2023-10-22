@@ -1,5 +1,6 @@
-# PadavanPy
-My collection of Python code and scripts, which I am using to teach my friends Python!
+# Padavan
+### (PadavanPy in the past)
+My collection of various codes and scripts, which I am using to teach my friends, tutees or clients Python!
 
 This repo contains Python code demos and exercises for beginners.
 I also use the repo to explain git to newbies.
@@ -24,3 +25,6 @@ public static void main(final String[] args) {
     System.out.println("Welcome to my repository!");
 }
 ```
+
+Recently I expanded C Programming Language Section for better reference
+
