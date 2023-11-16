@@ -9,20 +9,24 @@ WIDTH = 2000
 '''
 
 blue = (0, 128, 247)
-Speed = 2
+Speed = 5
 alien = Actor("alien") 
 
 horizontal_direction = "L" # L or R
 vertical_direction = 'U' # U or D
 Top = "U"
 Right = "R"
-alien.pos = 100, 100
+alien.pos = WIDTH/2, HEIGHT/2
 MOVING = 'M'
 IDLE = 'I'
 player_motion_state_h = IDLE
 player_motion_state_v = IDLE
 
 
+def shoot_bullet_player():
+    bullet = bullet_create() 
+    bullets.append(bullet)    
+    clock.schedule(shoot_bullet_player,1)
 def bullet_create ():
 
     distance_from_center = math.sqrt((WIDTH/2)**2+(HEIGHT/2)**2) 
@@ -32,19 +36,28 @@ def bullet_create ():
 
     
 
-    new_bullet_speed = random.randint(5, 12)
-    new_bullet_angle = random.randint(0, 360)
 
 
     # math.radians(), math.sin(), math.cos()
 
     # convert angle in degrees into angle in radians
-    new_bullet_angle_in_radians = math.radians(new_bullet_angle)
+    player_x, player_y = alien.pos   #  if player.pos is (4, 6), then python will put 4 to playr_x and 6 to player_y
+    
+    new_bullet_speed_x = (player_x - new_bullet_x)
+    new_bullet_speed_y = (player_y - new_bullet_y)
 
-    # extract the x and y from the angle and direction. Convert polar coordinates into cartesian.
-    new_bullet_speed_x = new_bullet_speed * math.cos(new_bullet_angle_in_radians)
-    new_bullet_speed_y = new_bullet_speed * math.sin(new_bullet_angle_in_radians)
+    # find the magnitude
+    magnitude =  math.sqrt(new_bullet_speed_x**2+new_bullet_speed_y**2)
 
+    # normalize the vector
+    new_bullet_speed_x = new_bullet_speed_x / magnitude
+    new_bullet_speed_y = new_bullet_speed_y / magnitude
+
+    # set the desired speed
+    bullet_speed_magnitude = random.uniform(2,5)
+
+    new_bullet_speed_x = new_bullet_speed_x * bullet_speed_magnitude
+    new_bullet_speed_y = new_bullet_speed_y * bullet_speed_magnitude
     return {
         'x': new_bullet_x,
         'y': new_bullet_y,
@@ -54,12 +67,10 @@ def bullet_create ():
         }
     }
 
-# bullet = bullet_create()
-bullets = [bullet_create(), bullet_create(), bullet_create()]
 
-for _ in range(100):
-    new_bullet = bullet_create()
-    bullets.append(new_bullet)
+# bullet = bullet_create()
+bullets = []
+clock.schedule(shoot_bullet_player,1)
 
     
 def draw():
@@ -144,3 +155,4 @@ def on_key_up(key):
     global player_motion_state_h
     if key == keys.LEFT or key == keys.RIGHT:
         player_motion_state_h = IDLE
+
