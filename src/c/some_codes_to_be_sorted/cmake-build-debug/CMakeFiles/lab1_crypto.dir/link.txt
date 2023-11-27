@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/lab1_crypto.dir/task1.c.o  -o lab1_crypto 

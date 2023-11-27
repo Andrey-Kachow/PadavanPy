@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/task9.dir/task9.c.o  -o task9 
