@@ -1,3 +1,6 @@
+# C libraries not to distribute
+SDL2.dll
+
 # VIM
 *.swp
 
