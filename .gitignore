@@ -1,5 +1,8 @@
 # C libraries not to distribute
 SDL2.dll
+# Other windows C stuff
+*.ilk
+*.pdb
 
 # VIM
 *.swp
