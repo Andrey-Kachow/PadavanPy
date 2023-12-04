@@ -50,18 +50,26 @@ void update_field(void) {
 			int neighbour_count = 0;
 			for (int y = -1; y <= 1; y++) {
 				for (int x = -1; x <= 1; x++) {
-					int u = (i + y + GAME_SIZE) % GAME_SIZE;
-					int v = (i + y + GAME_SIZE) % GAME_SIZE;
-					if (source_array[u * GAME_SIZE + v]) {
-						neighbour_count++;
+					if (x != 0 || y != 0) {
+						int u = (i + y + GAME_SIZE) % GAME_SIZE;
+						int v = (j + x + GAME_SIZE) % GAME_SIZE;
+						if (source_array[u * GAME_SIZE + v]) {
+							neighbour_count++;
+						}
 					}
 				}
 			}
 			// double check rules
-			if (neighbour_count == 2 || neighbour_count == 3 ) {
-				destination_array[i * GAME_SIZE + j] = true;
+			if (source_array[i * GAME_SIZE + j]) {
+				if (neighbour_count == 2 || neighbour_count == 3) {
+					destination_array[i * GAME_SIZE + j] = true;
+				} else {
+					destination_array[i * GAME_SIZE + j] = false;
+				}
 			} else {
-				destination_array[i * GAME_SIZE + j] = false;
+				if (neighbour_count == 3) {
+					destination_array[i * GAME_SIZE + j] = true;
+				}
 			}
 		}
 	}
@@ -118,8 +126,8 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		draw_game();
-		flip_game_buffers();
 		update_field();
+		flip_game_buffers();
 		SDL_UpdateWindowSurface(window);
 		SDL_Delay(100);
 	}
