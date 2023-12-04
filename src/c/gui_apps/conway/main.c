@@ -3,17 +3,88 @@
 #include <stdlib.h>
 #include <SDL.h>
 #include <stdbool.h>
+#include <time.h>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#define CELL_SIZE 10
+#define GAME_SIZE 50
 
-SDL_Renderer *renderer;
+#define SCREEN_WIDTH (CELL_SIZE*GAME_SIZE)
+#define SCREEN_HEIGHT (CELL_SIZE*GAME_SIZE)
+
+bool first_game_buffer[GAME_SIZE * GAME_SIZE];
+bool second_game_buffer[GAME_SIZE * GAME_SIZE];
+bool *source_array = first_game_buffer;
+bool *destination_array = second_game_buffer;
+
+Uint32 alive_color;
+Uint32 dead_color;
+
+SDL_Window *window;
+SDL_Surface *screen_surface;
+
+bool use_first_game_buffer = true;
+
+void init_initial_game(void) {
+	srand(time(NULL));
+	for (int i = 0; i < GAME_SIZE; i++) {
+		for (int j = 0; j < GAME_SIZE; j++) {
+			first_game_buffer[i * GAME_SIZE + j] = rand() & 1;
+		}
+	}
+}
+
+void flip_game_buffers() {
+	if (use_first_game_buffer) {
+		source_array = first_game_buffer;
+		destination_array = second_game_buffer;
+	} else {
+		source_array = second_game_buffer;
+		destination_array = first_game_buffer;
+	}
+	use_first_game_buffer = !use_first_game_buffer;
+}
+
+void update_field(void) {
+	for (int i = 0; i < GAME_SIZE; i++) {
+		for (int j = 0; j < GAME_SIZE; j++) {
+			int neighbour_count = 0;
+			for (int y = -1; y <= 1; y++) {
+				for (int x = -1; x <= 1; x++) {
+					int u = (i + y + GAME_SIZE) % GAME_SIZE;
+					int v = (i + y + GAME_SIZE) % GAME_SIZE;
+					if (source_array[u * GAME_SIZE + v]) {
+						neighbour_count++;
+					}
+				}
+			}
+			// double check rules
+			if (neighbour_count == 2 || neighbour_count == 3 ) {
+				destination_array[i * GAME_SIZE + j] = true;
+			} else {
+				destination_array[i * GAME_SIZE + j] = false;
+			}
+		}
+	}
+}
+
+void draw_game(void) {
+	SDL_Rect rectangle;
+	rectangle.w = CELL_SIZE;
+	rectangle.h = CELL_SIZE;
+	for (int i = 0; i < GAME_SIZE; i++) {
+		rectangle.y = i * CELL_SIZE;
+		for (int j = 0; j < GAME_SIZE; j++) {
+			rectangle.x = j * CELL_SIZE;
+			if (source_array[i * GAME_SIZE + j]) {
+				SDL_FillRect(screen_surface, &rectangle, alive_color);
+			} else {
+				SDL_FillRect(screen_surface, &rectangle, dead_color);
+			}
+		}
+	}
+}
 
 int main(int argc, char *argv[]) {
-
-	SDL_Window *window = NULL;
-
-	SDL_Surface *screen_surface = NULL;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initilaize! SDL_Error: %s\n", SDL_GetError());
@@ -26,9 +97,15 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	
+	init_initial_game();
+
 	screen_surface = SDL_GetWindowSurface(window);
 
-	SDL_FillRect(screen_surface, NULL, SDL_MapRGB(screen_surface->format, 255, 255, 255));
+	alive_color = SDL_MapRGB(screen_surface->format, 255, 255, 255);
+	dead_color = SDL_MapRGB(screen_surface->format, 0, 0, 0);
+
+	SDL_FillRect(screen_surface, NULL, dead_color);
 
 	SDL_UpdateWindowSurface(window);
 
@@ -40,6 +117,11 @@ int main(int argc, char *argv[]) {
 				quit = true;
 			}
 		}
+		draw_game();
+		flip_game_buffers();
+		update_field();
+		SDL_UpdateWindowSurface(window);
+		SDL_Delay(100);
 	}
 	
     SDL_DestroyWindow(window);
