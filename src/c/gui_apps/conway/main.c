@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define CELL_SIZE 10
-#define GAME_SIZE 50
+#define CELL_SIZE 3
+#define GAME_SIZE 250
 
 #define SCREEN_WIDTH (CELL_SIZE*GAME_SIZE)
 #define SCREEN_HEIGHT (CELL_SIZE*GAME_SIZE)
@@ -69,6 +69,8 @@ void update_field(void) {
 			} else {
 				if (neighbour_count == 3) {
 					destination_array[i * GAME_SIZE + j] = true;
+				} else {
+					destination_array[i * GAME_SIZE + j] = false;
 				}
 			}
 		}
@@ -125,11 +127,11 @@ int main(int argc, char *argv[]) {
 				quit = true;
 			}
 		}
+		flip_game_buffers();
 		draw_game();
 		update_field();
-		flip_game_buffers();
 		SDL_UpdateWindowSurface(window);
-		SDL_Delay(100);
+		SDL_Delay(50);
 	}
 	
     SDL_DestroyWindow(window);
