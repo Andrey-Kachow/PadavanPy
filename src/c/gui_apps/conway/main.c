@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define CELL_SIZE 3
-#define GAME_SIZE 250
+#define CELL_SIZE 2
+#define GAME_SIZE 400
 
 #define SCREEN_WIDTH (CELL_SIZE*GAME_SIZE)
 #define SCREEN_HEIGHT (CELL_SIZE*GAME_SIZE)
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	window = SDL_CreateWindow("Evolution Project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		return 1;
