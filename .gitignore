@@ -8,6 +8,7 @@ SDL2.dll
 *.swp
 
 
+.vs
 mainbin
 *.zip
 *.o

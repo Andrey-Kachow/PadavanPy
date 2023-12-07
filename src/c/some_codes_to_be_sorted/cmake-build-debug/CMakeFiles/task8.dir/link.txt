@@ -1,1 +1,0 @@
-/usr/bin/cc -g   CMakeFiles/task8.dir/task8.c.o  -o task8 

@@ -1,1 +1,0 @@
-/usr/bin/cc -g   CMakeFiles/task7.dir/task7.c.o  -o task7 
