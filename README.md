@@ -26,5 +26,10 @@ public static void main(final String[] args) {
 }
 ```
 
-Recently I expanded C Programming Language Section for better reference
+Recently I expanded the C Programming Language Section for better reference
+
+## My students' projects honorable mentions:
+
+1) Conway's Game of life
+2) Pygame zero games...
 
