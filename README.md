@@ -32,4 +32,6 @@ Recently I expanded the C Programming Language Section for better reference
 
 1) Conway's Game of life
 2) Pygame zero games...
+    1.1) Evade The Bullets
+    2.2) Hit The Alien
 
