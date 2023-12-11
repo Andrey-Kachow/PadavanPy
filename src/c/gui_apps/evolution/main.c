@@ -7,6 +7,30 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
+struct Point {
+	int x;
+	int y;
+};
+
+struct Cell {
+	struct Point speed;
+	struct Point position;
+	double energy;
+}
+
+struct Cell * create_Cell(int x, int y, double energy) {
+	struct Cell *cell = malloc(sizeof(struct Cell));
+	if (cell == NULL) {
+		return NULL;
+	}
+	cell->speed.x = 0;
+	cell->speed.y = 0;
+	cell->position.x = x;
+	cell->position.y = y;
+	cell->energy = energy;
+	return cell;
+}
+
 int main(int argc, char *argv[]) {
 
 	SDL_Window *window = NULL;
