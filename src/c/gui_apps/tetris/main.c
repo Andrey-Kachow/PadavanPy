@@ -20,6 +20,16 @@
 #define SCREEN_WIDTH (2*UI_PADDING+UI_ELEMENTS_SEPARATION+CONTAINER_UI_WIDTH)
 #define SCREEN_HEIGHT (2*UI_PADDING+CONTAINER_HEIGHT)
 
+#define EMPTY_CELL 0
+#define SOLID_CELL 1
+
+int[CONTAINER_HEIGHT][CONTAINER_WIDTH] Game_Container = {0};
+
+void Test_Field_Display(void) {
+	
+}
+
+
 int main(int argc, char *argv[]) {
 
 	SDL_Window *window = NULL;
