@@ -9,11 +9,12 @@
 
 #define SQUARE 20
 #define PADDING 40
-#define GAME_WIDTH 15
-#define GAME_HEIGHT 40
+#define GAME_WIDTH 22
+#define GAME_HEIGHT 45
 #define BORDER_WIDTH 5
 #define ACTIVE_CELL 'A'
 #define EMPTY_CELL 'E'
+#define MOTION_RATE 3
 
 #define FIELD_HEIGHT_PX (GAME_HEIGHT*(SQUARE+BORDER_WIDTH)+BORDER_WIDTH) 
 #define FIELD_WIDTH_PX (GAME_WIDTH*(SQUARE+BORDER_WIDTH)+BORDER_WIDTH)
@@ -28,15 +29,55 @@ struct point {
 	int y;
 };
 
-struct point shapes[7][4] = {
-	{{0, 0}, {-1, 0}, {-1, -1}, {1, 0}}, // L_shape_Right
-	{{0, 0}, {0,-1}, {-1,-1}, {-1,0}}, // square_shape
-	{{0, 0}, {0, -1}, {0, -2}, {0, 1}}, // I_shape
-	{{0, 0}, {-1,0}, {1,0}, {-1, -1}}, // L_shape_Left
-	{{0, 0}, {1, 0}, {1, -1}, {0, 1}}, // S_shape
-	{{0, 0}, {1, 0}, {0, -1}, {1, 1}}, // Z_shape
-	{{0, 0}, {-1, 0}, {-1, -1}, {-1, 1}} //T_shape
+struct point shapes[7][4][4] = {
+	{
+		{{0, 0}, {-1, 0}, {-1, -1}, {1, 0}}, // L_shape_Right 45 
+		{{0, 0}, {0, 1}, {1, -1}, {0, -1}}, // L_shape_Right 90 
+		{{0, 0}, {-1,0}, {1, 0}, {1, 1}}, // L_shape_Right 135 
+		{{0, 0}, {0, 1}, {0, -1}, {-1, 1}}, // L_shape_Right 180 
+	},
+	{
+		{{0, 0}, {0,-1}, {-1,-1}, {-1,0}}, // square_shape 45 
+		{{0, 0}, {0, 1}, {1,1}, {1,0}}, // square_shape 90 
+		{{0, 0}, {0,-1}, {-1,-1}, {-1,0}}, // square_shape 135 
+		{{0, 0}, {1, 0}, {1, 1}, {0, 1}}, // square_shape 180 
+	},
+	{	
+		{{0, 0}, {0, 1}, {0, 2}, {0, -1}}, // I_shape 45 
+		{{0, 0}, {-1, 0}, {1, 0}, {2, 0}}, // I_shape 90 
+		{{0, 0}, {0, -1}, {0, -2}, {0, 1}}, // I_shape 135 
+		{{0, 0}, {-2, 0}, {-1, 0}, {1, 0}}, // I_shape 180 
+	},
+	{
+		{{0, 0}, {-1,0}, {1, 0}, {1, 1}}, // L_shape_LEFT 45 
+		{{0, 0}, {0, 1}, {0, -1}, {-1, 1}}, // L_shape_LEFT 90 
+		{{0, 0}, {-1, 0}, {-1, -1}, {1, 0}}, // L_shape_LEFT 135 
+		{{0, 0}, {0, 1}, {1, -1}, {0, -1}}, // L_shape_LEFT 180 
+	},
+	{
+		{{0, 0}, {1, 0}, {0, -1}, {1, 1}}, // S_shape 45
+		{{0, 0}, {1, 0}, {0, 1}, {-1, 1}}, // S_shape 180
+		{{0, 0}, {1, 0}, {0, -1}, {1, 1}}, // S_shape 45
+		{{0, 0}, {1, 0}, {0, 1}, {-1, 1}}, // S_shape 180
+	},
+	{
+		{{0, 0}, {1, 0}, {1, -1}, {0, 1}}, // Z_shape 45
+		{{0, 0}, {1, 0}, {0, -1}, {-1, -1}}, // Z_shape 135
+		{{0, 0}, {1, 0}, {1, -1}, {0, 1}}, // Z_shape 45
+		{{0, 0}, {1, 0}, {0, -1}, {-1, -1}}, // Z_shape 135
+	},
+	{
+		{{0, 0}, {-1, 0}, {-1, -1}, {-1, 1}}, //T_shape 45
+		{{0, 0}, {1, 0}, {1, 1}, {1, -1}}, //T_shape 90
+		{{0, 0}, {-1, -1}, {0, -1}, {1, -1}}, //T_shape 135
+		{{0, 0}, {1, 1}, {0, 1}, {-1, 1}} //T_shape 180
+	}
 };
+
+/*
+		{{0, 0}, {1, 0}, {0, -1}, {1, 1}}, // Z_shape 45
+
+*/
 
 
 Uint32 primary_color;
@@ -45,19 +86,101 @@ Uint32 cell_color;
 Uint32 empty_cell_color;
 char Field[GAME_HEIGHT][GAME_WIDTH];
 
+void Place_Shape(int shape_id, int x, int y, int rotating) {
+	int destination_x;
+	int destination_y;
+	SDL_Rect drawable;
+	drawable.h = SQUARE;
+	drawable.w = SQUARE;
+	for (int count = 0; count < 4; count++) {
+		struct point cell = shapes[shape_id][rotating][count];
+		destination_y = y + cell.y;
+		destination_x = x + cell.x;
+		int draw_x = game_coordinate_to_graphics_coordinate(destination_x);
+		int draw_y = game_coordinate_to_graphics_coordinate(destination_y);
+		drawable.x = draw_x;
+		drawable.y = draw_y;
+		
+		SDL_FillRect(screen_surface, &drawable, cell_color);
+	}
+}
+
 /*
 	Mark Field Array Elements that correspond to cells in a shape as Active.
 */
-void Place_Shape(int shape_id, int x, int y) {
+void Place_freeze_Shape(int shape_id, int x, int y, int rotating) {
 	int destination_x;
 	int destination_y;
 	for (int count = 0; count < 4; count++) {
-		struct point cell = shapes[shape_id][count];
+		struct point cell = shapes[shape_id][rotating][count];
 		destination_y = y + cell.y;
 		destination_x = x + cell.x;
 		Field[destination_y][destination_x] = ACTIVE_CELL;
 	}
 }
+
+int game_coordinate_to_graphics_coordinate(int x_or_y) {
+	return PADDING + BORDER_WIDTH + x_or_y * (SQUARE+BORDER_WIDTH);
+}
+
+int active_shape_id = -1;
+int active_x = 0;
+int active_y = 0;
+int active_orentation = 0;
+int game_time = 0;
+int next_move = MOTION_RATE;
+
+bool collides_down() {
+	int shape_element_x;
+	int shape_element_y;
+	for (int count = 0; count < 4; count++) {
+		struct point cell = shapes[active_shape_id][active_orentation][count];
+		shape_element_y = active_y + cell.y + 1;
+		shape_element_x = active_x + cell.x;
+		if (shape_element_y >= GAME_HEIGHT) {
+			return true;
+		}
+		if (Field[shape_element_y][shape_element_x] == ACTIVE_CELL) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void Draw_active_shape() {
+	if (game_time >= next_move) {
+		if (collides_down()) {
+			Place_freeze_Shape(active_shape_id, active_x, active_y, active_orentation);
+			active_shape_id = -1;
+		} else {
+			active_y += 1;
+			next_move += MOTION_RATE;
+		}
+	}
+	if (active_shape_id == -1) {
+		active_shape_id = rand()%7;
+		active_orentation = rand()%4;
+		active_x = GAME_WIDTH/2;
+		active_y = 2;
+	}
+	Place_Shape(active_shape_id, active_x, active_y, active_orentation);
+}
+
+/**
+	int x0 = inner.x + BORDER_WIDTH;
+	int y0 = inner.y + BORDER_WIDTH;
+	for (int i = 0;i < GAME_HEIGHT; i++) {
+		cell.y = (SQUARE+BORDER_WIDTH)*i+y0;
+		for (int j = 0;j < GAME_WIDTH; j++) {
+			cell.x = (SQUARE + BORDER_WIDTH)*j+x0;
+			if (Field[i][j] == ACTIVE_CELL) {
+				SDL_FillRect(screen_surface, &cell, cell_color);
+			} else {
+				SDL_FillRect(screen_surface, &cell, empty_cell_color);
+			}
+		}
+	}
+*/
 
 void Clear_field() {
 	for (int i=0;i<GAME_HEIGHT;i++) {
@@ -69,34 +192,24 @@ void Clear_field() {
 
 void test() {
 	for (int shape_id = 0; shape_id < 7; shape_id++) {
-		int offset = 5 * shape_id;
-
-		Place_Shape(shape_id, GAME_WIDTH / 2, offset + 4);
-
+		for (int orentation = 0; orentation < 4; orentation++) {
+			int x = 5 * orentation + 5;
+			int y = 5 * shape_id + 5;
+			Place_Shape(shape_id, x, y, orentation);
+		}
 	}
+	
 }
-
-
 
 void Init_colors() {
 	primary_color = SDL_MapRGB(screen_surface->format, 0, 0, 0);
-	secondary_color = SDL_MapRGB(screen_surface->format, 179, 111, 0);
+	secondary_color = SDL_MapRGB(screen_surface->format, 82, 42, 2);
 	cell_color = SDL_MapRGB(screen_surface-> format, 224, 142, 7);
 	empty_cell_color = SDL_MapRGB(screen_surface-> format, 87, 78, 65);
 }
 
 void Draw_Game() {
 	SDL_FillRect(screen_surface, NULL, secondary_color);
-	// SDL_Rect Square;
-	// SDL_Rect Kletka;
-	// Square.x = PADDING;
-	// Square.y = PADDING;
-	// Kletka.w = SQUARE;
-	// Kletka.h = SQUARE;
-	// Square.w = SQUARE * GAME_WIDTH;
-	// Square.h = SQUARE * GAME_HEIGHT;
-	// SDL_FillRect(screen_surface, &Square, primary_color);
-	// SDL_FillRect(screen_surface, &Kletka, secondary_color);
 
 	// 2. Oбъявляем квадрат внутренний (темный -- цвет границ клетокб сетка)
 	SDL_Rect inner;
@@ -129,6 +242,9 @@ void Draw_Game() {
 	// while??
 }
 
+bool right_press = false;
+bool left_press = false;
+bool rotate_press = false;
 
 int main(int argc, char *argv[]) {
 
@@ -153,18 +269,43 @@ int main(int argc, char *argv[]) {
 	Init_colors();
 
 	SDL_Event event;
+	srand(time(NULL));
 	bool quit = false;
 	Clear_field();
-	test();
 	while (quit == false) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
 			}
+			if (event.type == SDL_KEYDOWN) {
+				if (event.key.keysym.sym == SDLK_LEFT && !left_press) {
+					active_x -= 1;
+					left_press = true;
+				} else if (event.key.keysym.sym == SDLK_RIGHT && !right_press) {
+					active_x += 1;
+					right_press = true;
+				} else if (event.key.keysym.sym == SDLK_SPACE && !rotate_press) {
+					active_orentation += 1;
+					active_orentation %= 4;
+					rotate_press = true; 
+				}
+			}
+			if (event.type == SDL_KEYUP) {
+				if (event.key.keysym.sym == SDLK_LEFT) {
+					left_press = false;
+				} else if (event.key.keysym.sym == SDLK_RIGHT) {
+					right_press = false;
+				} else if (event.key.keysym.sym == SDLK_SPACE) {
+					rotate_press = false;
+				}
+			}
 		}
 		Draw_Game();
+		Draw_active_shape();
+		// test();
 		SDL_UpdateWindowSurface(window);
 		SDL_Delay(100);
+		game_time += 1;
 	}
 
     SDL_DestroyWindow(window);
