@@ -7,8 +7,9 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include <SDL_TTF.h>
+// #include <SDL_TTF.h>
 
+// Base Units
 #define SQUARE 20
 #define PADDING 40
 #define GAME_WIDTH 22
@@ -17,13 +18,22 @@
 #define EMPTY_CELL_COLOR_INDEX 7
 #define MOTION_RATE 3
 #define PANEL_WIDTH 400
+#define DANGER_ZONE_Y 3
+#define SCORE_BOX 120
 
-
+// UI elements dimensions
 #define FIELD_HEIGHT_PX (GAME_HEIGHT*(SQUARE+BORDER_WIDTH)+BORDER_WIDTH) 
 #define FIELD_WIDTH_PX (GAME_WIDTH*(SQUARE+BORDER_WIDTH)+BORDER_WIDTH)
 
 #define SCREEN_WIDTH (FIELD_WIDTH_PX+3*PADDING+PANEL_WIDTH) 
 #define SCREEN_HEIGHT (FIELD_HEIGHT_PX+2*PADDING)
+
+// UI elements positions
+#define PANEL_X (SCREEN_WIDTH - PADDING - PANEL_WIDTH)
+#define PANEL_Y PADDING
+#define BOX_X (PANEL_X + PADDING)
+#define BOX_Y (PANEL_Y + PADDING)
+
 
 SDL_Surface *screen_surface = NULL;
 
@@ -89,25 +99,54 @@ Uint32 panel_color;
 Uint32 cell_colors[8];
 Uint32 empty_cell_color;
 Uint32 Field[GAME_HEIGHT][GAME_WIDTH];
+bool quit = false;
+Uint32 top_color;
 
-void Place_Shape(int shape_id, int x, int y, int rotating) {
+void string_to_int(char * word, int value) {
+	if (value == 0) {
+        word[0] = '0';
+        word[1] = '\0';
+        return;
+    }
+	word[32] = '\0';
+	int current_position = 31;
+	while (value != 0) {
+		word[current_position] = value;
+	}
+	current_position -= 1;
+	value /= 2;
+}
+
+void internal_place_shape(int shape_id, int x, int y, int rotating, int px_offset_x, int px_offset_y) {
 	int destination_x;
 	int destination_y;
 	SDL_Rect drawable;
 	drawable.h = SQUARE;
 	drawable.w = SQUARE;
-
 	for (int count = 0; count < 4; count++) {
 		struct point cell = shapes[shape_id][rotating][count];
 		destination_y = y + cell.y;
 		destination_x = x + cell.x;
 		int draw_x = game_coordinate_to_graphics_coordinate(destination_x);
 		int draw_y = game_coordinate_to_graphics_coordinate(destination_y);
-		drawable.x = draw_x;
-		drawable.y = draw_y;
+		drawable.x = draw_x + px_offset_x;
+		drawable.y = draw_y + px_offset_y;
 		
 		SDL_FillRect(screen_surface, &drawable, cell_colors[shape_id]); //............................................
 	}
+}
+
+void Place_Shape(int shape_id, int x, int y, int rotating) {
+	internal_place_shape(shape_id, x, y, rotating, 0, 0);
+}
+
+void Draw_next_shape(int shape_id, int rotating) {
+	int x = 0;
+	int y = 0;
+	int px_offset_x = BOX_X - PADDING + SCORE_BOX/2 - (SQUARE + BORDER_WIDTH)/2;
+	int px_offset_y = BOX_Y - PADDING + SCORE_BOX/2 - (SQUARE + BORDER_WIDTH)/2;
+
+	internal_place_shape(shape_id, x, y, rotating, px_offset_x, px_offset_y);
 }
 
 /*
@@ -133,8 +172,12 @@ int active_shape_id = -1;
 int active_x = 0;
 int active_y = 0;
 int active_orentation = 0;
+int next_shape_id = -1;
+int next_orentation = 0;
 int game_time = 0;
 int next_move = MOTION_RATE;
+
+
 
 bool collides(int delta_x, int delta_y, int delta_rotation) {
 	int shape_element_x;
@@ -159,33 +202,70 @@ bool collides(int delta_x, int delta_y, int delta_rotation) {
 }
 
 void Drop_shapes(int y) {
+	int count = 0;
 	for (int i=y;i>0;i--) {
 		for (int j=0;j<GAME_WIDTH;j++) {
 			int temp = Field[i][j];
 			Field[i][j] = Field[i-1][j];
 			Field[i-1][j] = temp;
-			
 		}
 	}
 }
 
+double factorial(int n) {
+	int count = 1;
+	double product = 1;
+	while (count <= n) {
+		product *= count;
+		count += 1;
+	}
+	// printf("%d! = %f\n", n, product);
+	return product;
+}
+
 void Destroy_complete_rows() {
+	int count = 0;
 	for (int i=0;i<GAME_HEIGHT;i++) {
 		int empty_counter = 0;
 		for (int j=0;j<GAME_WIDTH;j++) {
 			if (Field[i][j] == cell_colors[EMPTY_CELL_COLOR_INDEX]) {
-				empty_counter += 1;
+				empty_counter += 1;		
 			} 
 		}
 		if (empty_counter < 1) {
 			for (int j=0;j<GAME_WIDTH;j++) {
 				Field[i][j] = cell_colors[EMPTY_CELL_COLOR_INDEX];
 			}
+			count += 1;
 			Drop_shapes(i);
-			score += 100;
 		}
 	}
+	int score_bonus = 0;
+
+
+
+	/*
+		count  |  score_bonus
+		-------+------------- 
+			1  |   200           200 * count
+			2  |   400           200 * count * (count - 1)
+			3  |   1200			 200 * count * (count - 1) * (count - 2)
+			4  |   4800          200 * count * (count - 1) * (count - 2) * (count - 3)
+
+			n  |   200 * n!
+
+			n! = n * (n - 1) * (n - 2) ... * 2 * 1
+			1! = 1
+	*/
+
+	if (1 <= count) {
+		score_bonus = 200 * factorial(count);
+	}
+	
+	score += score_bonus;
+	printf("%d ", score);
 }
+
 
 void Draw_active_shape() {
 	if (game_time >= next_move) {
@@ -203,9 +283,14 @@ void Draw_active_shape() {
 		active_orentation = rand()%4;
 		active_x = GAME_WIDTH/2;
 		active_y = 2;
+		next_shape_id = rand()%7;
+		next_orentation = rand()%4;
 	}
-
+	if (Field[active_y][active_x] != cell_colors[EMPTY_CELL_COLOR_INDEX]) {
+		quit = true;
+	}	
 	Place_Shape(active_shape_id, active_x, active_y, active_orentation);
+	Draw_next_shape(next_shape_id, next_orentation);
 }
 
 /**
@@ -242,6 +327,10 @@ void Clear_field() {
 void test() {
 	Clear_field();
 	for (int j=1;j<GAME_WIDTH;j++) {
+		Field[GAME_HEIGHT-6][j] = cell_colors[0];
+		Field[GAME_HEIGHT-5][j] = cell_colors[0];
+		Field[GAME_HEIGHT-4][j] = cell_colors[0];
+		Field[GAME_HEIGHT-3][j] = cell_colors[0];
 		Field[GAME_HEIGHT-2][j] = cell_colors[0];
 		Field[GAME_HEIGHT-1][j] = cell_colors[0];
 	}
@@ -270,31 +359,35 @@ void Init_colors() {
 	cell_colors[5] = SDL_MapRGB(screen_surface-> format, 179, 84, 118);
 	cell_colors[6] = SDL_MapRGB(screen_surface-> format, 52, 84, 118);
 	cell_colors[7] = SDL_MapRGB(screen_surface-> format, 87, 78, 65);
+	top_color = SDL_MapRGB(screen_surface-> format, 133, 47, 25);
 }
 
 void Draw_Panel() {
 	SDL_Rect inner;
 	inner.w = PANEL_WIDTH;
 	inner.h = FIELD_HEIGHT_PX;
-	inner.x = SCREEN_WIDTH - PADDING - PANEL_WIDTH;
-	inner.y = PADDING;
+	inner.x = PANEL_X;
+	inner.y = PANEL_Y;
+
+	SDL_Rect next_shape_box = { inner.x + PADDING, inner.y + PADDING, SCORE_BOX, SCORE_BOX };
 
 	SDL_FillRect(screen_surface, &inner, panel_color);
+	SDL_FillRect(screen_surface, &next_shape_box, top_color);
 
-	TTF_Font* font = TTF_OpenFont("ARIAL.TTF", 12);
+	// TTF_Font* font = TTF_OpenFont("ARIAL.TTF", 12);
 
-	SDL_Color foregroundColor = { 0, 0, 0 };
-	SDL_Color backgroundColor = { 255, 255, 255 };
+	// SDL_Color foregroundColor = { 0, 0, 0 };
+	// SDL_Color backgroundColor = { 255, 255, 255 };
 
-	SDL_Surface* textSurface = TTF_RenderText_Shaded(font, "hello", foregroundColor, backgroundColor);
+	// SDL_Surface* textSurface = TTF_RenderText_Shaded(font, "hello", foregroundColor, backgroundColor);
 
-	SDL_Rect textLocation = { inner.x, inner.y, 0, 0 };
+	// SDL_Rect textLocation = { inner.x, inner.y, 0, 0 };
 
-	SDL_BlitSurface(textSurface, NULL, screen, &textLocation);
+	// SDL_BlitSurface(textSurface, NULL, screen, &textLocation);
 
-	SDL_FreeSurface(textSurface);
+	// SDL_FreeSurface(textSurface);
 
-	TTF_CloseFont(font);
+	// TTF_CloseFont(font);
 
 }
 
@@ -326,14 +419,19 @@ void Draw_Game() {
 		for (int j = 0;j < GAME_WIDTH; j++) {
 			cell.x = (SQUARE + BORDER_WIDTH)*j+x0;
 			SDL_FillRect(screen_surface, &cell, Field[i][j]);
+			if (i < DANGER_ZONE_Y && cell_colors[EMPTY_CELL_COLOR_INDEX] == Field[i][j]) {
+				SDL_FillRect(screen_surface, &cell, top_color);
+			}
 		}
 	}
 	// while??
 }
 
+
 bool right_press = false;
 bool left_press = false;
 bool rotate_press = false;
+bool down_press = false;
 
 int main(int argc, char *argv[]) {
 
@@ -359,7 +457,6 @@ int main(int argc, char *argv[]) {
 
 	SDL_Event event;
 	srand(time(NULL));
-	bool quit = false;
 	// Clear_field();
 	test();
 	while (quit == false) {
@@ -384,6 +481,11 @@ int main(int argc, char *argv[]) {
 						active_orentation %= 4;
 						rotate_press = true; 
 					}
+				} else if (event.key.keysym.sym == SDLK_DOWN && !down_press) {
+					if (!collides(0, 1, 0)) {
+						active_y += 1;
+						down_press = true; 
+					}
 				}
 			}
 			if (event.type == SDL_KEYUP) {
@@ -393,12 +495,15 @@ int main(int argc, char *argv[]) {
 					right_press = false;
 				} else if (event.key.keysym.sym == SDLK_SPACE) {
 					rotate_press = false;
+				} else if (event.key.keysym.sym == SDLK_DOWN) {
+					down_press = false;
 				}
 			}
 		}
 		Draw_Game();
 		Draw_active_shape();
 		SDL_UpdateWindowSurface(window);
+		// printf("%d", score);
 		SDL_Delay(100);
 		game_time += 1;
 	}
