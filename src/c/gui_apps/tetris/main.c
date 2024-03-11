@@ -281,7 +281,7 @@ void Draw_Panel() {
 
 	SDL_FillRect(screen_surface, &inner, panel_color);
 
-	TTF_Font* font = TTF_OpenFont("C:\\Users\\Andrey Popov\\Desktop\\Programming\\Teaching\\PadavanPy\\src\\c\\gui_apps\\tetris\\kk_version\\DejaVuSansMono.ttf", 12);
+	TTF_Font* font = TTF_OpenFont("DejaVuSansMono.ttf", 12);
 	printf("%d\n", font);
 	printf("TTF_OpenFont: %s\n", TTF_GetError());
 

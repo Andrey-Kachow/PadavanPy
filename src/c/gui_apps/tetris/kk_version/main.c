@@ -7,14 +7,14 @@
 #include <stdbool.h>
 #include <time.h>
 
-// #include <SDL_TTF.h>
+#include <SDL_TTF.h>
 
 // Base Units
-#define SQUARE 20
+#define SQUARE 6
 #define PADDING 40
 #define GAME_WIDTH 22
-#define GAME_HEIGHT 45
-#define BORDER_WIDTH 5
+#define GAME_HEIGHT 30
+#define BORDER_WIDTH 2
 #define EMPTY_CELL_COLOR_INDEX 7
 #define MOTION_RATE 3
 #define PANEL_WIDTH 400
@@ -362,6 +362,18 @@ void Init_colors() {
 	top_color = SDL_MapRGB(screen_surface-> format, 133, 47, 25);
 }
 
+void Draw_ScoreText() {
+	TTF_Font* font = TTF_OpenFont("DejaVuSansMono.ttf", 12);
+	
+	SDL_Color foregroundColor = { 0, 0, 0 };
+	SDL_Color backgroundColor = { 255, 255, 255 };
+	SDL_Surface* textSurface = TTF_RenderText_Solid(font, "hello", foregroundColor, backgroundColor);
+	SDL_Rect textLocation = { PANEL_X + 100, PANEL_Y + 100, 100, 100 };
+	SDL_BlitSurface(textSurface, NULL, screen_surface, &textLocation);
+	SDL_FreeSurface(textSurface);
+	TTF_CloseFont(font);
+}
+
 void Draw_Panel() {
 	SDL_Rect inner;
 	inner.w = PANEL_WIDTH;
@@ -374,20 +386,7 @@ void Draw_Panel() {
 	SDL_FillRect(screen_surface, &inner, panel_color);
 	SDL_FillRect(screen_surface, &next_shape_box, top_color);
 
-	// TTF_Font* font = TTF_OpenFont("ARIAL.TTF", 12);
-
-	// SDL_Color foregroundColor = { 0, 0, 0 };
-	// SDL_Color backgroundColor = { 255, 255, 255 };
-
-	// SDL_Surface* textSurface = TTF_RenderText_Shaded(font, "hello", foregroundColor, backgroundColor);
-
-	// SDL_Rect textLocation = { inner.x, inner.y, 0, 0 };
-
-	// SDL_BlitSurface(textSurface, NULL, screen, &textLocation);
-
-	// SDL_FreeSurface(textSurface);
-
-	// TTF_CloseFont(font);
+	Draw_ScoreText();
 
 }
 
@@ -445,6 +444,11 @@ int main(int argc, char *argv[]) {
 	window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	if (TTF_Init() != 0) {
+		printf("Could not initialize text! SDL_Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
