@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+// #pragma comment(lib,"Shell32.lib")
+
 #define CELL_SIZE 2
 #define GAME_SIZE 400
 
