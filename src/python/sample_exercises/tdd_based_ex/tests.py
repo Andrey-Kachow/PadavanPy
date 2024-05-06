@@ -1,17 +1,19 @@
+from task import *
+
 def test_greatest_common_divisor():
-    assert gcd(42, 56) == 14
-    assert gcd(461952, 116298) == 18
+    assert greatest_common_divisor(42, 56) == 14
+    assert greatest_common_divisor(461952, 116298) == 18
 
 
 def test_greatest_common_divisor_large():
-    assert gcd(7966496, 314080416) == 32
-    assert gcd(24826148, 45296490) == 526
+    assert greatest_common_divisor(7966496, 314080416) == 32
+    assert greatest_common_divisor(24826148, 45296490) == 526
 
 
 def test_greatest_common_divisor_zeros():
-    assert gcd(12, 0) == 12
-    assert gcd(0, 0) == 0
-    assert gcd(0, 9) == 9
+    assert greatest_common_divisor(12, 0) == 12
+    assert greatest_common_divisor(0, 0) == 0
+    assert greatest_common_divisor(0, 9) == 9
 
 def test_are_coprime_one():
     assert are_coprime(1, 2)
