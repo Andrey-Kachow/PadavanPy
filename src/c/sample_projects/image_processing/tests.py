@@ -1,4 +1,7 @@
 
+#ppm viewer
+#https://jumpshare.com/viewer/ppm
+
 def write_int(img, size, value):
 	for _ in range(size):
 		b = value % 256
