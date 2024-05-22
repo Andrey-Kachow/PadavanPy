@@ -47,29 +47,76 @@ void destroy_picture(struct picture* picture) {
     free(picture);
 }
 
-#define READ_BUFFER_SIZE 50
+#define READ_BUFFER_ALLOCATION 64 * 1024
+#define READ_BUFFER_SIZE (READ_BUFFER_ALLOCATION - 1)
 
-int accept_int(FILE * file_pointer) {
-    char letter;
-    fscanf(file_pointer, "%c", &letter);
-    while (letter == ' ' || letter == '\n') {
-        // printf("~%c", letter);
-        fscanf(file_pointer, "%c", &letter);
+int accept_int(char ** buffer_ptr) {
+
+    while(**buffer_ptr == ' ' || **buffer_ptr == '\n') {
+        *buffer_ptr += 1;
     }
+    if (**buffer_ptr == '\0') {
+        return -1; // -1 -- не дошли до цифер
+    }
+
     int total = 0;
-    // printf("\n\n\n\n----\nSKIPPED\n-----\n\n\n\n");
-    while (letter >= '0' && letter <= '9') {
-        total = total * 10 + letter - '0';
-        // printf("~%c", letter);
-        fscanf(file_pointer, "%c", &letter);
+    int counter = 0;
+    while(**buffer_ptr >= '0' && **buffer_ptr <= '9') {
+        total = total * 10 + **buffer_ptr - '0';
+        *buffer_ptr += 1;
+        counter += 1;
+    }
+    if (**buffer_ptr == '\0' && counter < 3) {
+        return total * 1000; // число подозревается
     }
     return total;
-    /*
-        do {
-            fscanf(file_pointer, "%c", &letter);
-        } while (letter == ' ' || letter == '\n');
+
+    // char letter;
+    // fscanf(file_pointer, "%c", &letter);
+    // while (letter == ' ' || letter == '\n') {
+    //     // printf("~%c", letter);
+    //     fscanf(file_pointer, "%c", &letter);
+    // }
+    // int total = 0;
+    // // printf("\n\n\n\n----\nSKIPPED\n-----\n\n\n\n");
+    // while (letter >= '0' && letter <= '9') {
+    //     total = total * 10 + letter - '0';
+    //     // printf("~%c", letter);
+    //     fscanf(file_pointer, "%c", &letter);
+    // }
+    // return total;
+    // /*
+    // //     do {
+    //         fscanf(file_pointer, "%c", &letter);
+    //     } while (letter == ' ' || letter == '\n');
         
-    */
+    // */
+}
+
+int complete_int(char ** buffer_ptr, int rgb) {
+    while(**buffer_ptr >= '0' && **buffer_ptr <= '9') {
+        rgb = rgb * 10 + **buffer_ptr - '0';
+        *buffer_ptr += 1;
+    }
+    return rgb;
+}
+
+int read_rgb(char ** buffer_ptr, char * file_buffer, FILE * ptrFile) {
+    int rgb;
+    do {
+        rgb = accept_int(buffer_ptr);
+        if (rgb > 255) {
+            rgb /= 1000;
+            *buffer_ptr = fgets(file_buffer, READ_BUFFER_SIZE, ptrFile);
+            rgb = complete_int(buffer_ptr, rgb);
+        }
+        if (rgb == -1) {
+            *buffer_ptr = fgets(file_buffer, READ_BUFFER_SIZE, ptrFile);
+            continue;
+        }
+        break;
+    } while (true);
+    return rgb;
 }
 
 /*
@@ -156,29 +203,33 @@ struct picture * create_picture_from_ppm_file(char * filename) {
         //         red = *letter_pointer1;
         //     }    
         // }
-
+    char * file_buffer = malloc(sizeof(char) * READ_BUFFER_ALLOCATION);
+    
     int red;
     int blue;
     int green;
 
     int next1 = 0;
     int pixel_counter = 0;
-    while (pixel_counter != width * height) {
-        red = accept_int(ptrFile);
-        green = accept_int(ptrFile);
-        blue = accept_int(ptrFile);
-        // printf("%d %d %d\n", red, green, blue);
-        printf("%d\n", pixel_counter);  
+    while (pixel_counter < width * height && fgets(file_buffer, READ_BUFFER_SIZE, ptrFile)) {
+        char * buffer_ptr = file_buffer;
+        while (pixel_counter < width * height && *buffer_ptr != '\0') {
+            red = read_rgb(&buffer_ptr, file_buffer, ptrFile);
+            green = read_rgb(&buffer_ptr, file_buffer, ptrFile);
+            blue = read_rgb(&buffer_ptr, file_buffer, ptrFile);
+            // green = accept_int(&buffer_ptr);
+            printf("%d ---> rgb(%d, %d, %d)\n", pixel_counter, red, green, blue);
+            // printf("%s\n", buffer_ptr);
 
+            image->pixels[pixel_counter].red = red;
+            image->pixels[pixel_counter].green = green;
+            image->pixels[pixel_counter].blue = blue;
+            pixel_counter += 1;
+        }
         // image->pixels[pixel_counter].red = red
-
-        image->pixels[pixel_counter].red = red;
-        image->pixels[pixel_counter].green = green;
-        image->pixels[pixel_counter].blue = blue;
-        pixel_counter += 1;
     }
     
-
+    free(file_buffer);
     /////////////////////////// END TASK 3 CODE ///////////////////////////
 
     fclose(ptrFile);
@@ -224,13 +275,11 @@ void save_picture_as_ppm(struct picture * image, char * filepath) {
         int green = px.green;
         int blue = px.blue;
 
-        fprintf(ptrFile, "%d %d %d\n", red, green, blue);  
+        fprintf(ptrFile, "%d %d %d\n", red, green, blue);
         pixel_counter += 1;  
     }
 
-
     /////////////////////////// END TASK 4 CODE ///////////////////////////
-
     fclose(ptrFile);
 }
 
@@ -252,35 +301,79 @@ void save_picture_as_ppm(struct picture * image, char * filepath) {
 */
 void grayscale(struct picture * image) {
 
+    int pixel_counter = 0;
+    while (pixel_counter != image->width * image->height) {
+        struct pixel px= image->pixels[pixel_counter];
+
+        int red = px.red;
+        int green = px.green;
+        int blue = px.blue;
+
+        int red_gray = (red + green + blue) / 3;
+        int green_gray = (red + green + blue) / 3;
+        int blue_gray = (red + green + blue) / 3;
+        
+
+        image->pixels[pixel_counter].red = red_gray;
+        image->pixels[pixel_counter].green = green_gray;
+        image->pixels[pixel_counter].blue = blue_gray;
+
+        // fprintf(ptrFile, "%d %d %d\n", red_gray, green_gray, blue_gray);
+        pixel_counter += 1;  
+    }
 }
 
 /*
     Task 7. Реализовать функцию, применяющую фильтр Сепия
     
     Algorithm to convert a colored image to sepia −
-        Get the red green blue values of each pixel
-
-        Get the average of these 3 colors.
-
-        Define the depth and intensity values (ideally 20, and 30).
-
-        Modify the values as −
-
-            red = red + (depth*2).
-
-            Green = green +depth.
-
-            blue = blue-intensity.
-
-        Make sure that the modified values are between 0 to 255.
-
-        Create a new pixel value from the modified colors and set the new value to the pixel.
+        1.Get the red green blue values of each pixel
+        2.Get the average of these 3 colors.
+        3.Define the depth and intensity values (ideally 20, and 30).
+        4.Modify the values as −
+        5.red = red + (depth*2).
+        6.Green = green + depth.
+        7.blue = blue - intensity.
+        8.Make sure that the modified values are between 0 to 255.
+        9.Create a new pixel value from the modified colors and set the new value to the pixel.
 
     источник: https://www.tutorialspoint.com/how-to-convert-a-colored-image-to-sepia-image-using-java-opencv-library
 */
 #define DEFAULT_SEPIA_DEPTH 20
 #define DEFAULT_SEPIA_INTENSITY 30
 void sepia(struct picture * image, int depth, int intensity) {
+
+    int pixel_counter = 0;
+    while (pixel_counter != image->width * image->height) {
+        struct pixel px= image->pixels[pixel_counter];
+
+        // colors
+        int red = px.red;
+        int green = px.green;
+        int blue = px.blue;
+
+        // average of colors
+        int red_average = (red + green + blue) / 3;
+        int green_average = (red + green + blue) / 3;
+        int blue_average = (red + green + blue) / 3;
+
+        // sepia_filter
+        int red_sepia = red_average + (depth*2);
+        if (red_sepia > 255) {
+            red_sepia = 255;
+        }
+        int green_sepia = green_average + depth;
+        if (green_sepia > 255) {
+            green_sepia = 255;
+        }
+        int blue_sepia = blue_average - intensity;
+        if (blue_sepia > 255) {
+            blue_sepia = 255;
+        }
+
+        // fprintf(ptrFile, "%d %d %d\n", red, green, blue);
+        pixel_counter += 1;
+    }
 
 }
 
@@ -295,6 +388,22 @@ void sepia(struct picture * image, int depth, int intensity) {
 */
 void negative(struct picture * image) {
 
+    int pixel_counter = 0;
+    while (pixel_counter != image->width * image->height) {
+        struct pixel px= image->pixels[pixel_counter];
+
+        int red = px.red;
+        int green = px.green;
+        int blue = px.blue;
+
+        int red_negative = 255 - red;
+        int green_negative = 255 - green;
+        int blue_negative = 255 - blue;
+
+        // fprintf(ptrFile, "%d %d %d\n", red, green, blue);
+        pixel_counter += 1;  
+    }
+
 }
 
 /*
@@ -308,7 +417,7 @@ void negative(struct picture * image) {
     +----+----+----+   Таким образом новые RGB значения пикселя p4 будут получены следующим образом (Псевдокод):
     | p3 | p4 | p5 |        p4.r = (p0.r + p1.r + ... + p7.r + p8.r) / 9
     +----+----+----+        p4.g = (p0.g + p1.g + ... + p7.g + p8.g) / 9
-    | p6 | p7 | p8 |        p4.r = (p0.b + p1.b + ... + p7.b + p8.b) / 9
+    | p6 | p7 | p8 |        p4.b = (p0.b + p1.b + ... + p7.b + p8.b) / 9
     +----+----+----+
 
     Не забудьте учесть, что крайние и угловые пиксели имеют менее восьми соседей. 
@@ -420,10 +529,27 @@ void sharpen(struct picture * input_image, struct picture * output_image) {
 */
 int main() {
 
+    int depth = DEFAULT_SEPIA_DEPTH;
+    int intensity = DEFAULT_SEPIA_INTENSITY;
+
     struct picture * image = create_picture_from_ppm_file("Photo.ppm");
 
+    int selection = 0; // Выбор
+    printf("Enter number of filter (1 - grayscale, 2 - sepia, 3 - negative):\n");
+    scanf("%d", &selection);
+    if (selection == 1) {
+        grayscale(image);
+    }
+    if (selection == 2) {
+        sepia(image, depth, intensity);
+    }
+    if (selection == 3) {
+        negative(image);
+    } else {
+        printf("Selection error! No such option: %d\n", selection);
+    }
+
     // Apply Transformations
-    grayscale(image);  // как например
 
     // Примечание: Для успешного применения функций blur и sharpen, нужно создать дополнительную картинку,
     // у которой размеры будут такие же, как и у исходной. 
