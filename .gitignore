@@ -11,7 +11,8 @@ SDL2.dll
 
 
 .vs
-mainbin
+main
+bin
 *.zip
 *.o
 trd_test.html
