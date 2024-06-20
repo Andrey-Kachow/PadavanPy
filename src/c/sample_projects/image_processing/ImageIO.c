@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 struct pixel {
     int red;
     int green;
@@ -266,7 +265,7 @@ void save_picture_as_ppm(struct picture * image, char * filepath) {
     */
     /////////////////////////// BEGIN TASK 4 CODE /////////////////////////
     
-
+    
     int pixel_counter = 0;
     while (pixel_counter != image->width * image->height) {
         struct pixel px= image->pixels[pixel_counter];
@@ -304,7 +303,6 @@ void grayscale(struct picture * image) {
     int pixel_counter = 0;
     while (pixel_counter != image->width * image->height) {
         struct pixel px= image->pixels[pixel_counter];
-
         int red = px.red;
         int green = px.green;
         int blue = px.blue;
@@ -313,7 +311,6 @@ void grayscale(struct picture * image) {
         int green_gray = (red + green + blue) / 3;
         int blue_gray = (red + green + blue) / 3;
         
-
         image->pixels[pixel_counter].red = red_gray;
         image->pixels[pixel_counter].green = green_gray;
         image->pixels[pixel_counter].blue = blue_gray;
@@ -353,23 +350,32 @@ void sepia(struct picture * image, int depth, int intensity) {
         int blue = px.blue;
 
         // average of colors
-        int red_average = (red + green + blue) / 3;
-        int green_average = (red + green + blue) / 3;
-        int blue_average = (red + green + blue) / 3;
+        int red_average = red + 0 *(red + green + blue) / 3;
+        int green_average = green + 0 *(red + green + blue) / 3;
+        int blue_average = blue + 0 *(red + green + blue) / 3;
 
         // sepia_filter
         int red_sepia = red_average + (depth*2);
         if (red_sepia > 255) {
             red_sepia = 255;
         }
+
         int green_sepia = green_average + depth;
         if (green_sepia > 255) {
             green_sepia = 255;
         }
+
         int blue_sepia = blue_average - intensity;
         if (blue_sepia > 255) {
             blue_sepia = 255;
         }
+        if (blue_sepia < 0) {
+            blue_sepia = 0;
+        }
+
+        image->pixels[pixel_counter].red = red_sepia;
+        image->pixels[pixel_counter].green = green_sepia;
+        image->pixels[pixel_counter].blue = blue_sepia;
 
         // fprintf(ptrFile, "%d %d %d\n", red, green, blue);
         pixel_counter += 1;
@@ -399,6 +405,10 @@ void negative(struct picture * image) {
         int red_negative = 255 - red;
         int green_negative = 255 - green;
         int blue_negative = 255 - blue;
+
+        image->pixels[pixel_counter].red = red_negative;
+        image->pixels[pixel_counter].green = green_negative;
+        image->pixels[pixel_counter].blue = blue_negative;
 
         // fprintf(ptrFile, "%d %d %d\n", red, green, blue);
         pixel_counter += 1;  
@@ -432,6 +442,52 @@ void negative(struct picture * image) {
 */
 void blur(struct picture * input_image, struct picture * output_image) {
 
+    int pixel_counter = 0;
+    while (pixel_counter != input_image->width * input_image->height) {
+        int pix_n = 0;
+        int total_r = 0;
+        int total_g = 0;
+        int total_b = 0;
+
+        int middle_i = pixel_counter / input_image->width;
+        int middle_j = pixel_counter % input_image->width;
+
+        for (int y=-1; y<2; y++) {
+            for (int x=-1; x<2; x++) {
+                
+                int neighbourhood_pixel_i = middle_i + y;
+                int neighbourhood_pixel_j = middle_j + x;
+
+                // проверка краев и углов.
+                if (neighbourhood_pixel_j >= 0 && neighbourhood_pixel_j < input_image->width) {
+                    if (neighbourhood_pixel_i >= 0 && neighbourhood_pixel_i < input_image->height) {
+                        
+                        int neighbourhood_pixel_index = neighbourhood_pixel_i * input_image->width + neighbourhood_pixel_j;
+                        struct pixel px= input_image->pixels[neighbourhood_pixel_index]; 
+
+                        int red = px.red;
+                        int green = px.green;
+                        int blue = px.blue;
+                        
+                        total_r += red;
+                        total_g += green;
+                        total_b += blue;
+                        pix_n += 1;
+                    }
+                }
+            }     
+        }
+        total_r /= pix_n;
+        total_g /= pix_n;
+        total_b /= pix_n;
+        
+        output_image->pixels[pixel_counter].red = total_r;
+        output_image->pixels[pixel_counter].green = total_g;
+        output_image->pixels[pixel_counter].blue = total_b;
+
+        // fprintf(ptrFile, "%d %d %d\n", red_gray, green_gray, blue_gray);
+        pixel_counter += 1;  
+    }
 }
 
 /*
@@ -532,21 +588,37 @@ int main() {
     int depth = DEFAULT_SEPIA_DEPTH;
     int intensity = DEFAULT_SEPIA_INTENSITY;
 
-    struct picture * image = create_picture_from_ppm_file("Photo.ppm");
+    struct picture * image = create_picture_from_ppm_file("Photo1.ppm");
 
-    int selection = 0; // Выбор
-    printf("Enter number of filter (1 - grayscale, 2 - sepia, 3 - negative):\n");
-    scanf("%d", &selection);
-    if (selection == 1) {
-        grayscale(image);
-    }
-    if (selection == 2) {
-        sepia(image, depth, intensity);
-    }
-    if (selection == 3) {
-        negative(image);
-    } else {
-        printf("Selection error! No such option: %d\n", selection);
+
+    int selection = 0;
+    while (selection != 6) {
+        printf("Enter number of filter (1 - grayscale, 2 - sepia, 3 - negative, 4 - blur, 5 - sharpen, 6 - exit):\n");
+        scanf("%d", &selection);
+        if (selection == 1) {
+            grayscale(image);
+            save_picture_as_ppm(image, "Grayscale_Image.ppm");
+            break;
+        }
+        if (selection == 2) {
+            sepia(image, depth, intensity);
+            save_picture_as_ppm(image, "Sepia_Image.ppm");
+        }
+        if (selection == 3) {
+            negative(image);
+            save_picture_as_ppm(image, "Negative_Image.ppm");
+        }
+        if (selection == 4) {
+            struct picture * output_image = create_picture(image->width, image->height);
+            save_picture_as_ppm(output_image, "Blur_Image.ppm");
+            destroy_picture(output_image);
+        }
+        if (selection == 6) {
+            break;
+        }
+        if (selection > 6) {
+            printf("Selection error! No such option: %d\n", selection);
+        }
     }
 
     // Apply Transformations
@@ -554,8 +626,6 @@ int main() {
     // Примечание: Для успешного применения функций blur и sharpen, нужно создать дополнительную картинку,
     // у которой размеры будут такие же, как и у исходной. 
     // (Ну или w - 2, h - 2, если вырезать рамку пикселей с неполным соседством 3x3 - стенки и углы)
-
-    save_picture_as_ppm(image, "Result_Image.ppm");
     destroy_picture(image);
 
     return 0;
