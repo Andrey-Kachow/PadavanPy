@@ -11,7 +11,7 @@ void snippet_1_floats() {
 }
 
 void snippet_2_pointers() {
-    int arr[] = {10, 20, 30, 40, 50};
+    int arr[] = { 10, 20, 30, 40, 50 };
     int *ptr1 = arr;
     int *ptr2 = ptr1 + 3;
 
