@@ -1,4 +1,4 @@
 Beginner friendly Leetcode problems to test:
 
-    ?) https://leetcode.com/problems/distribute-money-to-maximum-children/
-    ?) https://leetcode.com/problems/add-binary/
+    1) https://leetcode.com/problems/distribute-money-to-maximum-children/
+    2) https://leetcode.com/problems/add-binary/
