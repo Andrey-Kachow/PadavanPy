@@ -83,7 +83,7 @@ int roll_icosahedron_dice() {
     Напишите функцию caesar_cipher_encrypt, которая поменяет каждую букву в тексте согласно алгоритму Цезаря по ключу шифрования cihper_key.
     Знаки препинания, цифры и другие символы можно не шифровать
  */
-void ceasar_cipher_encrypt(char * message_text, int cipher_key) {
+void caesar_cipher_encrypt(char * message_text, int cipher_key) {
 
 }
 
@@ -91,15 +91,29 @@ void ceasar_cipher_encrypt(char * message_text, int cipher_key) {
     Аналогично, напишите функцию расшифровки сообщения. Перевести шифр обратно в исзодный тект.
     Последовательное применение шифрования и расшифровки с одним и тем же ключом не должно менять текст.
 */
-void ceasar_cipher_decrypt(char * cipher_text, int cipher_key) {
+void caesar_cipher_decrypt(char * cipher_text, int cipher_key) {
 
 }
 
 int main() {
 
     char text[25];
+    int key = 8;
 
+    // Начальный текст
+    //
     strcpy(text, "Hello, World!");
+    printf("%s\n", text);
+
+    // Шифрование текста
+    //
+    caesar_cipher_encrypt(text, key);
+    printf("%s\n", text);
+    
+    // Дешифровка
+    //
+    caesar_cipher_decrypt(text, key);
+    printf("%s\n", text);
 
     return 0;
 }
