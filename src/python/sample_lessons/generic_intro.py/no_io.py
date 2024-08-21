@@ -5,7 +5,7 @@
 
     ########## Your Code ###########
 
-
+    answer = "Yes"
     if age < 18 or (country == "USA" and age < 21):
         answer = "No"
 
