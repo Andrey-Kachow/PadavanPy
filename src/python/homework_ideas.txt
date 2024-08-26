@@ -1,0 +1,4 @@
+Folder union:
+    assess two root folders and see which differences exist in them.
+    Then copy folders that present only in the first folder to second
+    and vice versa, from second to first.

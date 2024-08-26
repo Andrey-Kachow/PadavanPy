@@ -24,25 +24,6 @@ answer = "I don't know"
 ################## Начало Вашего Кода #######################
 
 
-if month < 1 or month > 12:
-    print("Нет")
-else:
-    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-        max_day = 29
-    else:
-        max_day = 28
-            
-if month in [4, 6, 9, 11]:
-    max_day = 30
-else:
-    max_day = 31
-    
-if 1 <= day <= max_day:
-    print("Да")
-else:
-    print("Нет")
-
-
 ################## Конец Вашего Кода ########################
 
 print(answer)
