@@ -105,7 +105,7 @@ def test_exponentiation():
     assert exponentiation(2, 2) == 4
     assert exponentiation(3, 3) == 27
     assert exponentiation(10, 4) == 10000
-    assert exponent(30, 0) == 1
+    assert exponentiation(30, 0) == 1
 
 
 def test_quotient_remainder_of():
