@@ -1,4 +1,18 @@
-from answers import *
+from task import *
+
+def test_can_drink():
+    assert can_drink(18, False)
+    assert can_drink(21, False)
+    assert can_drink(90, False)
+    assert not can_drink(3, False)
+
+
+def test_can_drink_united_states():
+    assert not can_drink(18, True)
+    assert can_drink(21, True)
+    assert can_drink(90, True)
+    assert not can_drink(3, True)
+
 
 def test_plus():
 	assert plus(1, 1) == 2
