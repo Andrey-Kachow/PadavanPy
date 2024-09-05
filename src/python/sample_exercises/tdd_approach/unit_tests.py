@@ -29,14 +29,14 @@ def test_minus():
 
 
 def test_is_even():
-	assert is_even(0);
-	assert is_even(2);
-	assert is_even(-4);
-	assert is_even(8);
-	assert is_even(1000);
-	assert not is_even(1);
-	assert not is_even(3);
-	assert not is_even(-5);
+	assert is_even(0)
+	assert is_even(2)
+	assert is_even(-4)
+	assert is_even(8)
+	assert is_even(1000)
+	assert not is_even(1)
+	assert not is_even(3)
+	assert not is_even(-5)
 
 
 def test_celsius_to_kelvin_valid_temperature():
