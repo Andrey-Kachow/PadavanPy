@@ -34,10 +34,6 @@ def bullet_create ():
     new_bullet_x = (WIDTH/2) + distance_from_center * math.cos(angle_of_position)
     new_bullet_y = (HEIGHT/2) + distance_from_center * math.sin(angle_of_position)
 
-    
-
-
-
     # math.radians(), math.sin(), math.cos()
 
     # convert angle in degrees into angle in radians
