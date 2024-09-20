@@ -1,0 +1,28 @@
+>>> names = ["Vasya", "Petya", "Slava", "Vasya"]
+>>> unique_names = set(names)
+>>> unique_names
+{'Vasya', 'Petya', 'Slava'}
+>>> names
+['Vasya', 'Petya', 'Slava', 'Vasya']
+>>>
+
+
+>>> names = ["Vasya", "Petya", "Slava", "Vasya"]
+>>> unique_names = set(names)
+>>> unique_names
+{'Vasya', 'Petya', 'Slava'}
+>>> names
+['Vasya', 'Petya', 'Slava', 'Vasya']
+>>>
+>>>
+>>> pairs = [(1, 2), (2, 1), (3, 2), (2, 1)]
+>>> unique_pairs = set(pairs)
+>>> unique_pairs
+{(3, 2), (1, 2), (2, 1)}
+>>>
+>>> lists = [[1, 2], [2, 1], [3, 2], [2, 1]]
+>>> unique_lists = set(lists)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: unhashable type: 'list'
+>>>
