@@ -61,17 +61,6 @@ expandOne' cs r = concat $ map (`lookupChar` r) cs
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 -- FLOATS IN COMPUTERS DO NOT FOLLOW SOME MATHEMATICAL PROPERTIES OF REAL NUMBERS!
 
 
@@ -110,15 +99,6 @@ inverseTermsCanceOutProperty x
 
 
 
-
-
-
-
-
-
-
-
-
 -- SOME DEPENDENCIES
 -- Expand command string s n times using rule table r
 expand :: String -> Int -> Rules -> String
@@ -136,14 +116,6 @@ move 'F' _ ((x,y),r) = ((x + cos r',y + sin r'),r)
 
 degToRad :: Float -> Float
 degToRad x = pi * (x / 180)
-
-
-
-
-
-
-
-
 
 
 
@@ -179,9 +151,6 @@ runTurtle2 (c:cs) a l (t:ts)
 
 
 
-
-
-
 runTurtle2' :: Commands -> Angle -> Colour -> [TurtleState] -> [ColouredLine]
 runTurtle2' [] _ _ _ = []
 runTurtle2' (c:cs) a l (t@((x,y),_):ts)
@@ -205,19 +174,6 @@ runTurtleVariantsSame a b c
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- Define isPalindrome function, which returns True if a given string
 -- reads the same backwards and forwards.
 -- isPalindrome :: String -> Bool
@@ -226,24 +182,11 @@ runTurtleVariantsSame a b c
 
 
 
-
-
-
-
-
-
-
-
 -- PROBLEM 5
 
 myReverse :: [a] -> [a]
 myReverse []     = []
 myReverse (x:xs) = (myReverse xs) ++ [x]
-
-
-
-
-
 
 
 
@@ -261,14 +204,6 @@ isPalindrome (x:xs) =
 
 
 
-
-
-
-
-
-
-
-
 coolerIsPalindrome :: (Eq a) => [a] -> Bool
 coolerIsPalindrome xs = xs == reverse xs
 
@@ -278,47 +213,9 @@ isPalindromeFuncsAreEquivalent xs = isPalindrome xs == coolerIsPalindrome xs
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- Given a data of nested list write a function flatten :: NestedList a -> [a]
 -- which return a list of all elements of a nested list without nesting
 data NestedList a = Elem a | List [NestedList a]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -13,18 +13,6 @@ computeCoeffs a b
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 -- The above function uses fst and snd instead of pattern mathing over pairs.
 -- Could also use quotRem instead of div and mod
 
@@ -33,18 +21,6 @@ computeCoeffs a b
 -- Returns the smallest integer that is coprime with phi
 smallestCoPrimeOf :: Int -> Int
 smallestCoPrimeOf num = head [x | x <- [2..], gcd num x == 1]
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -70,33 +46,12 @@ inverse a m = u `mod` m
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- DONTCARES demo. Run with n = 33xx
 
 slowFib :: Integer -> Integer
 slowFib 0 = 0
 slowFib 1 = 1
 slowFib n = slowFib (n - 1) + slowFib (n - 2)
-
-
-
-
 
 
 slowPair :: Integer -> (Integer, Integer)
@@ -136,22 +91,6 @@ useSecondOnly' n =
     y
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- Calculates (a^k mod m)
 modPow :: Int -> Int -> Int -> Int
 modPow a k m
@@ -163,19 +102,6 @@ modPow a k m
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- The redndant bit is in (k - 1) instead of just k. But after that you spot duplication
 -- which can be further eliminated.
 
@@ -184,16 +110,6 @@ modPow a k m
 
 alphabetSize :: Int
 alphabetSize = 26
-
-
-
-
-
-
-
-
-
-
 
 
 

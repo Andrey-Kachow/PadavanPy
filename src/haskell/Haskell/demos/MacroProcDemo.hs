@@ -10,22 +10,9 @@ type KeywordDefs  = [(Keyword, KeywordValue)]
 
 
 
-
-
-
-
-
-
-
 lookUp :: String -> [(String, a)] -> [a]
 lookUp search itemPairs
   = [number | (letter,number) <- itemPairs, letter == search]
-
-
-
-
-
-
 
 
 
@@ -46,40 +33,10 @@ lambdaFunLookUp search itemPairs
 
 
 
-
-
-
-
-
-
-
-
-
 combine :: String -> [String] -> [String]
 combine _ [w] = [w]
 combine (s:ss) (w:ws)
   = w : [s] : combine ss ws
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -95,12 +52,6 @@ combine' (s:ss) (w:ws)
 
 
 
-
-
-
-
-
-
 -- You may wish to uncomment and implement this helper function
 -- when implementing expand
 replaceWord_ :: String -> KeywordDefs -> String
@@ -110,21 +61,6 @@ replaceWord_ word keywordDefs
   | otherwise = head lu
     where
       lu = lookUp word keywordDefs
-
-
-
-r
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -200,13 +136,6 @@ printSuccs xs = do
 
 
 
-
-
-
-
-
-
-
 splitText :: [Char] -> String -> (String, [String])
 splitText listSep [] = ("",[""])
 splitText listSep (x:xs) = if x `elem` listSep then (x:sep,([""]++(word:[])++words)) --add my word to the list and update sep
@@ -224,111 +153,6 @@ getKeywordDefs (k:ks) = if keyword == "" then getKeywordDefs keywords
    --using " " instead of (seperators) will help us reduce number of computations
    --because it is known that the keyword is seperated from the rest using " "
    --and splitting based on other separators is useless
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

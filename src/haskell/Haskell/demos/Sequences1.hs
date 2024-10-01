@@ -22,8 +22,6 @@ arithmeticSeq' a d n
 
 
 
-
-
 maxOf2 :: Int -> Int -> Int
 maxOf2 x y = x + y
 
