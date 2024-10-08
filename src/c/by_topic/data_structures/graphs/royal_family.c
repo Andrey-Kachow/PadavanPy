@@ -141,7 +141,7 @@ struct family_graph romanov_family = {
 int * children(int parent) {
     int children_count = 0;
     int i = 0;
-    while (i != 16) {
+    while (i != 15) {
         if (romanov_family.relations[i][0] == parent) {
             children_count += 1;
             printf("%s\n", romanov_family.people[romanov_family.relations[i][1]].name); // 
@@ -150,9 +150,9 @@ int * children(int parent) {
     }
     int * children_array = malloc(sizeof(int) * children_count);
     int child_position = 0;
-    for (int j=0; j!=16; j++) {
-        if (romanov_family.relations[i][0] == parent) {
-            children_array[child_position] = romanov_family.relations[i][1];
+    for (int j=0; j!=15; j++) {
+        if (romanov_family.relations[j][0] == parent) {
+            children_array[child_position] = romanov_family.relations[j][1];
             // printf("%s\n", romanov_family.people[romanov_family.relations[i][1]].name);
             child_position += 1;
         }
