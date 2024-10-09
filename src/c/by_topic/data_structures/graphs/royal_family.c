@@ -51,6 +51,7 @@ struct stack {
     int top;
 };
 
+
 struct person {
     char name[40];
     int year_of_birth;
@@ -138,32 +139,129 @@ struct family_graph romanov_family = {
     }
 };
 
-int * children(int parent) {
+int * children(int parent, int * size_out) {
     int children_count = 0;
-    int i = 0;
-    while (i != 15) {
+    for (int i=0; i!=15; i++) {
         if (romanov_family.relations[i][0] == parent) {
             children_count += 1;
-            printf("%s\n", romanov_family.people[romanov_family.relations[i][1]].name); // 
+            // printf("%s\n", romanov_family.people[romanov_family.relations[i][1]].name); // 
         }
-        i += 1;
     }
+    *size_out = children_count;
     int * children_array = malloc(sizeof(int) * children_count);
     int child_position = 0;
     for (int j=0; j!=15; j++) {
         if (romanov_family.relations[j][0] == parent) {
             children_array[child_position] = romanov_family.relations[j][1];
-            // printf("%s\n", romanov_family.people[romanov_family.relations[i][1]].name);
+            // printf("%s\n", romanov_family.people[romanov_family.relations[j][1]].name);
             child_position += 1;
         }
     }
     return children_array;
 }
 
-int main() {
-    struct stack * journal = stack_create();
-    int start_person = 0;
+void dfs(struct stack * journal) {
+    int child_count = -1;
+    int current_romanov = stack_peek(journal);
+    int * current_children = children(current_romanov, &child_count);
 
-    children(0);
+    printf("%s\n", romanov_family.people[current_romanov].name);
+    for (int i=0; i != child_count; i++) {
+        int next_child = current_children[i];
+        stack_push(journal, next_child);
+        dfs(journal);
+        stack_pop(journal);
+    }
+}
+
+void dfs_2(int current_romanov) {
+    int child_count = -1;
+    int * current_children = children(current_romanov, &child_count);
+
+    printf("%s\n", romanov_family.people[current_romanov].name);
+    for (int i=0; i != child_count; i++) {
+        int next_child = current_children[i];
+        dfs_2(next_child);
+    }
+}
+
+struct queue {
+    int start;
+    int end;
+    int * array;
+    int size_array;
+};
+
+void queue_add(struct queue * this_queue, int new_element) {
+    if (this_queue->start == -1) {
+        this_queue->start = 0;
+    }
+    this_queue->array[this_queue->end] = new_element;
+    this_queue->end += 1;
+}
+
+int queue_poll(struct queue * this_queue) {
+    int result = this_queue->array[this_queue->start];
+    this_queue->start += 1;
+    return result;
+}
+
+void queue_print(struct queue * this_queue) {
+    printf("{ ");
+    for (int i = this_queue->start; i < this_queue->end; i++) {
+        printf("%d, ", this_queue->array[i]);
+    }
+    printf(" }\n");
+}
+
+struct queue * queue_create(int size_array) {
+    struct queue * result = malloc(sizeof(struct queue));
+    if (result == NULL) {
+        return NULL;
+    }
+
+    result->start = -1;
+    result->end = 0;
+    result->array = malloc(sizeof(int) * size_array);
+    if (result->array == NULL) {
+        free(result);
+        return NULL;
+    }
+    result->size_array = size_array;
+    return result;
+}
+
+int main() {
+    // struct stack * journal = stack_create();
+    // int start_person = 0;
+    // stack_push(journal, start_person);
+    // // dfs(journal);
+
+    // int size = -1;
+    // int * paul_children = children(4, &size);
+    // for (int i=0; i!=size; i++) {
+    //     printf("%d\n", paul_children[i]);
+    // }
+
+    // free(journal);
+
+    dfs_2(0);
+
+    struct queue * q = queue_create(7);
+    queue_add(q, 1);
+    queue_print(q);
+
+    queue_add(q, 2);
+    queue_print(q);
+
+    queue_add(q, 3);
+    queue_print(q);
+
+    printf("%d\n", queue_poll(q));
+    queue_print(q);
+
+    queue_add(q, 4);
+    queue_print(q);
+    
     return 0;
 }
