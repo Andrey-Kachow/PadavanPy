@@ -187,31 +187,43 @@ void dfs_2(int current_romanov) {
 
 struct queue {
     int start;
-    int end;
+    int current_size;
     int * array;
     int size_array;
 };
 
 void queue_add(struct queue * this_queue, int new_element) {
-    if (this_queue->start == -1) {
-        this_queue->start = 0;
-    }
-    this_queue->array[this_queue->end] = new_element;
-    this_queue->end += 1;
+    int end = this_queue->current_size + this_queue->start;
+    end %= this_queue->size_array;
+    this_queue->array[end] = new_element;
+    this_queue->current_size += 1;
 }
 
 int queue_poll(struct queue * this_queue) {
+    if (this_queue->current_size == 0) {
+        printf("ERROR: empty queue poll\n");
+        return -1;
+    }
     int result = this_queue->array[this_queue->start];
     this_queue->start += 1;
+    this_queue->start %= this_queue->size_array;
+    this_queue->current_size -= 1;
     return result;
 }
 
+
 void queue_print(struct queue * this_queue) {
     printf("{ ");
-    for (int i = this_queue->start; i < this_queue->end; i++) {
-        printf("%d, ", this_queue->array[i]);
+    for (int i = 0; i < this_queue->current_size; i++) {
+        int position = this_queue->start + i;
+        position %= this_queue->size_array;
+        printf("%d, ", this_queue->array[position]);
     }
     printf(" }\n");
+}
+
+bool queue_empty(struct queue * this_queue) {
+    return this_queue->current_size == 0;
 }
 
 struct queue * queue_create(int size_array) {
@@ -220,8 +232,8 @@ struct queue * queue_create(int size_array) {
         return NULL;
     }
 
+    result->current_size = 0;
     result->start = -1;
-    result->end = 0;
     result->array = malloc(sizeof(int) * size_array);
     if (result->array == NULL) {
         free(result);
@@ -229,6 +241,23 @@ struct queue * queue_create(int size_array) {
     }
     result->size_array = size_array;
     return result;
+}
+
+void bfs() {
+    int first = 0;
+    struct queue * romanov_queue = queue_create(16);
+    queue_add(romanov_queue, first);
+    while (!queue_empty(romanov_queue)) {
+        int current_romanov = queue_poll(romanov_queue);
+        printf("%s\n", romanov_family.people[current_romanov].name);
+        int children_size = 0;
+        int * romanov_children = children(current_romanov, &children_size);
+        for (int i=0; i != children_size; i++) {
+            printf("%d\n", i);
+            int child = romanov_children[i];
+            queue_add(romanov_queue, child);
+        }
+    }
 }
 
 int main() {
@@ -245,9 +274,10 @@ int main() {
 
     // free(journal);
 
-    dfs_2(0);
+    // dfs_2(0);
 
-    struct queue * q = queue_create(7);
+    bfs();
+    struct queue * q = queue_create(3);
     queue_add(q, 1);
     queue_print(q);
 
