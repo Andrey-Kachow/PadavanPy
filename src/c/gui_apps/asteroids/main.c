@@ -24,13 +24,16 @@ static inline int drawable_y(float y) {
 }
 
 static inline int drawable_scale(float size) {
-    return (VERTICAL_DIR_FACTOR * size);
+    return (UNIT_SIZE * size);
+}
+
+void Debug_print_rect(SDL_Rect *rect) {
+    printf("{ %d, %d, %d, %d }\n", rect->x, rect->y, rect->w, rect->h);
 }
 
 void Game_draw_axis(SDL_Renderer *renderer) {
     float ax_half_thickness = 0.1;
     float ax_half_length = 10;
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_Rect hor_ax = {
         drawable_x(-ax_half_length),
@@ -44,8 +47,8 @@ void Game_draw_axis(SDL_Renderer *renderer) {
         drawable_scale(2 * ax_half_thickness),
         drawable_scale(2 * ax_half_length)
     };
-    SDL_RenderDrawRect(renderer, &hor_ax);
-    SDL_RenderDrawRect(renderer, &ver_ax);
+    SDL_RenderFillRect(renderer, &hor_ax);
+    SDL_RenderFillRect(renderer, &ver_ax);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_Rect origin_rect = {
@@ -54,7 +57,8 @@ void Game_draw_axis(SDL_Renderer *renderer) {
         drawable_scale(2 * ax_half_thickness),
         drawable_scale(2 * ax_half_thickness)
     };
-    SDL_RenderDrawRect(renderer, &origin_rect);
+    SDL_RenderFillRect(renderer, &origin_rect);
+    Debug_print_rect(&origin_rect);
 }
 
 struct Point {
@@ -74,7 +78,6 @@ void SpaceShip_render(struct SpaceShip *spaceship, SDL_Renderer *renderer) {
     vert[0].position.y = spaceship->pos.y + spaceship->length;
 }
 
-
 int main(int argc, char *argv[]) {
 
 	SDL_Window *window = NULL;
@@ -92,10 +95,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	screen_surface = SDL_GetWindowSurface(window);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-	SDL_FillRect(screen_surface, NULL, SDL_MapRGB(screen_surface->format, 255, 255, 255));
+    if (renderer == NULL) {
+        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
 	SDL_UpdateWindowSurface(window);
 
