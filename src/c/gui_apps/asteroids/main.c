@@ -1,4 +1,5 @@
 // #include <SDL2/SDL.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL.h>
@@ -15,6 +16,8 @@
 #define HORIZONTAL_DIR_FACTOR 1
 #define VERTICAL_DIR_FACTOR -1
 
+#define TIME_DELTA 0.001
+
 static inline int drawable_x(float x) {
     return (HORIZONTAL_DIR_FACTOR * x * UNIT_SIZE) + CAMERA_X;
 }
@@ -25,6 +28,12 @@ static inline int drawable_y(float y) {
 
 static inline int drawable_scale(float size) {
     return (UNIT_SIZE * size);
+}
+
+float random_float(float min, float max) {
+    float range_width = max - min;
+    float random_value = ((float)rand()/(float)(RAND_MAX)) * range_width;
+    return min + random_value;
 }
 
 void Debug_print_rect(SDL_Rect *rect) {
@@ -58,12 +67,13 @@ void Game_draw_axis(SDL_Renderer *renderer) {
         drawable_scale(2 * ax_half_thickness)
     };
     SDL_RenderFillRect(renderer, &origin_rect);
-    Debug_print_rect(&origin_rect);
 }
 
 struct Point {
     float x;
     float y;
+    float speed_x;
+    float speed_y;
 };
 
 struct SpaceShip {
@@ -72,13 +82,41 @@ struct SpaceShip {
     float width;
 };
 
+struct Asteroid {
+    struct Point pos;
+    float radius;
+    float angle;
+    float rot_speed;
+};
+
 void SpaceShip_render(struct SpaceShip *spaceship, SDL_Renderer *renderer) {
-    SDL_Vertex vert[3];
-    vert[0].position.x = spaceship->pos.x;
-    vert[0].position.y = spaceship->pos.y + spaceship->length;
 }
 
+void Asteroid_render(SDL_Renderer *renderer, SDL_Texture *asteroid_texure, struct Asteroid *asteroid) {
+    SDL_Rect dst;
+    dst.x = drawable_x(asteroid->pos.x - asteroid->radius);
+    dst.y = drawable_y(asteroid->pos.y - asteroid->radius);
+    dst.w = drawable_scale(asteroid->radius * 2);
+    dst.h = dst.w;
+    Debug_print_rect(&dst);
+    printf("%f\n", asteroid->radius);
+    SDL_RenderCopyEx(renderer, asteroid_texure, NULL, &dst, asteroid->angle, NULL, SDL_FLIP_NONE);
+}
+
+void Asteroid_process(struct Asteroid * asteroid) {
+    asteroid->pos.x += asteroid->pos.speed_x * TIME_DELTA;
+    asteroid->pos.y += asteroid->pos.speed_y * TIME_DELTA;
+    asteroid->angle += asteroid->rot_speed * TIME_DELTA;
+}
+
+// void Asteroids_draw(SDL_Renderer *renderer, SDL_Texture *asteroid_texure, struct Asteroid *asteroids, int num_asteroids) {
+//     for (int i = 0; i < num_asteroids; i++) {
+//         Asteroid_render(renderer, asteroid_texure, asteroids + i);
+//     }
+// }
+
 int main(int argc, char *argv[]) {
+    srand(time());
 
 	SDL_Window *window = NULL;
 	SDL_Surface *screen_surface = NULL;
@@ -101,6 +139,24 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+
+    SDL_Surface* asteroid_image = SDL_LoadBMP("asteroid.bmp");
+    SDL_Texture* asteroid_texure = SDL_CreateTextureFromSurface(renderer, asteroid_image);
+
+    // Random Asteroids
+    //
+    struct Asteroid roid = {
+        { 
+            random_float(-10, 10),
+            random_float(-10, 10),
+            random_float(-2, 2),
+            random_float(-2, 2)
+        },
+        random_float(1, 5),
+        random_float(0, 359),
+        random_float(-10, 10)
+    };   
+
 	SDL_UpdateWindowSurface(window);
 
 	SDL_Event event;
@@ -115,11 +171,15 @@ int main(int argc, char *argv[]) {
         SDL_RenderClear(renderer);
 
         Game_draw_axis(renderer);
+        Asteroid_render(renderer, asteroid_texure, &roid);
+        Asteroid_process(&roid);
 
         SDL_RenderPresent(renderer);
 	}
 
     SDL_DestroyRenderer(renderer);
+    SDL_DestroyTexture(asteroid_texure);
+    SDL_FreeSurface(asteroid_image);
     SDL_DestroyWindow(window);
 
     SDL_Quit();
