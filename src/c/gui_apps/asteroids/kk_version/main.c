@@ -10,6 +10,7 @@
 #define SCREEN_HEIGHT 1080
 #define THRUST_POWER 1000
 #define THRUST_POWER_ASTEROID 0.025
+#define THRUST_POWER_BULLET 0.10
 #define ROTATION_POWER 1000
 #define TARGET_FPS 144.0
 #define FRAME_DELAY (1000.0/TARGET_FPS)
@@ -25,19 +26,29 @@ struct Spaceship {
     float angle_vel; // скорость угла
 };
 
+struct Bullet {
+    float x;
+    float y;
+    float vel_x;
+    float vel_y;
+    float angle;
+    float angle_vel;  
+};
+
 struct Asteroid {
     float x;
     float y;
-    float vel_x;     // скорость
+    float vel_x;
     float vel_y;
-    float angle;     // угол
-    float angle_vel; // скорость угла
+    float angle;
+    float angle_vel; 
     int size;
 };
 
 float radius[3] = {32, 64, 128}; // size
 struct Spaceship spaceship;
 struct Asteroid asteroid;
+struct Bullet bullet;
 bool quit = false;
 
 ////////////////////////////////////////////////////////
@@ -65,6 +76,15 @@ void Asteroid_Init(struct Asteroid * asteroid) {
     asteroid->size = rand() % 3;
 }
 
+void Bullet_Init() {
+    bullet.x = spaceship.x;
+    bullet.y = spaceship.y;
+    bullet.vel_x = 50;
+    bullet.vel_y = 50;
+    bullet.angle = spaceship.angle;
+    bullet.angle_vel = spaceship.angle_vel;
+}
+
 ////////////////////////////////////////////////////////
 void Spaceship_process(float delta_time) {
     spaceship.x += spaceship.vel_x * delta_time;
@@ -74,10 +94,17 @@ void Spaceship_process(float delta_time) {
     spaceship.angle += spaceship.angle_vel * delta_time;
     spaceship.angle_vel *= DAMPING;
 }
+
 void Asteroid_process(struct Asteroid * asteroid, float delta_time) {
     asteroid->x += asteroid->vel_x * delta_time;
     asteroid->y += asteroid->vel_y * delta_time;
     asteroid->angle += asteroid->angle_vel * delta_time;
+}
+
+void Bullet_process(float delta_time) {
+    bullet.x += bullet.vel_x * delta_time;
+    bullet.y += bullet.vel_y * delta_time;
+    bullet.angle += bullet.angle_vel * delta_time;
 }
 
 ////////////////////////////////////////////////////////
@@ -89,7 +116,6 @@ void Spaceship_thrust(float delta_time) {
     spaceship.vel_x += cos(spaceship.angle * ((2 * M_PI) / 360)) * THRUST_POWER * delta_time;
     spaceship.vel_y += sin(spaceship.angle * ((2 * M_PI) / 360)) * THRUST_POWER * delta_time;
 }
-
 ////////////////////////////////////////////////////////
 void Draw_spaceship(SDL_Texture * spaceship_texture, SDL_Renderer * renderer) {
     SDL_Rect destination = {  //destination.x = spaceship.x;
@@ -100,6 +126,7 @@ void Draw_spaceship(SDL_Texture * spaceship_texture, SDL_Renderer * renderer) {
     };
     SDL_RenderCopyEx(renderer, spaceship_texture, NULL, &destination, 90 + spaceship.angle, NULL, SDL_FLIP_NONE);
 }
+
 void Draw_asteroid(struct Asteroid * asteroid, SDL_Renderer * renderer, SDL_Texture * asteroid_texture) {
     SDL_Rect destination = {  //destination.x = spaceship.x;
         asteroid->x - radius[asteroid->size], 
@@ -109,28 +136,38 @@ void Draw_asteroid(struct Asteroid * asteroid, SDL_Renderer * renderer, SDL_Text
     };
     SDL_RenderCopyEx(renderer, asteroid_texture, NULL, &destination, 90 + asteroid->angle, NULL, SDL_FLIP_NONE);
 }
+
+void Draw_bullet(SDL_Texture * bullet_texture, SDL_Renderer * renderer) {
+    SDL_Rect destination = {  //destination.x = spaceship.x;
+        bullet.x - 16, 
+        bullet.y - 16,
+        32,
+        32 
+    };
+    SDL_RenderCopyEx(renderer, bullet_texture, NULL, &destination, 90 + bullet.angle, NULL, SDL_FLIP_NONE);
+}
 ////////////////////////////////////////////////////////
 
-
+bool bullet_life = false;
 
 int main(int argc, int *argv[]) {
-    SDL_Window *window = NULL;
+	SDL_Window *window = NULL;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initilaize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL could not initilaize! SDL_Error: %s\n", SDL_GetError());
+		return 1;
+	}
 
-    window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+	window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	if (window == NULL) {
+		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		return 1;
+	}
 
-    // if (TTF_Init() != 0) {
-    //  printf("Could not initialize text! SDL_Error: %s\n", SDL_GetError());
-    //  return 1;
-    // }
+	// if (TTF_Init() != 0) {
+	// 	printf("Could not initialize text! SDL_Error: %s\n", SDL_GetError());
+	// 	return 1;
+	// }
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL) {
@@ -138,18 +175,21 @@ int main(int argc, int *argv[]) {
         return 1;
     }
 
-    srand(time(NULL));
+	srand(time(NULL));
     SDL_Surface* spaceship_image = SDL_LoadBMP("spaceship.bmp");
     SDL_Texture* spaceship_texture = SDL_CreateTextureFromSurface(renderer, spaceship_image);
     SDL_Surface* asteroid_image = SDL_LoadBMP("asteroid.bmp");
     SDL_Texture* asteroid_texture = SDL_CreateTextureFromSurface(renderer, asteroid_image);
-    
+    SDL_Surface* bullet_image = SDL_LoadBMP("bullet.bmp");
+    SDL_Texture* bullet_texture = SDL_CreateTextureFromSurface(renderer, bullet_image);
+
     struct Asteroid asteroids[COUNT_ASTEROIDS];
     for (int i=0; i!=COUNT_ASTEROIDS; i++) {
         Asteroid_Init(&asteroids[i]);
     }
-    SDL_Event event;
+	SDL_Event event;
     Spaceship_Init();
+    Bullet_Init();
 
     Uint32 frame_last_time = SDL_GetTicks();
     // render cycle
@@ -162,8 +202,8 @@ int main(int argc, int *argv[]) {
         frame_last_time = frame_start;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
-                quit = true;
-            }
+				quit = true;
+			}
             // if (event.type == SDL_KEYDOWN) {
             //     if (event.key.keysym.sym == SDLK_UP) {
             //         Spaceship_thrust(delta_time);
@@ -190,17 +230,26 @@ int main(int argc, int *argv[]) {
                 Spaceship_rotate(1, delta_time);
                 printf("RIGHT");
             }
-        }
+            if (keyState[SDL_SCANCODE_SPACE]) {
+                if (bullet_life == false) {
+                    Draw_bullet(bullet_texture, renderer);
+                    bullet_life = true;
+                    printf("SPACE");
+                }
+            }
+		}
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         // Обновляем игровые объекты
         Spaceship_process(delta_time);
+        Bullet_process(delta_time);
         for (int i=0; i!=COUNT_ASTEROIDS; i++) {
             Asteroid_process(&asteroids[i], delta_time);
         }
         
         // Рисуем
+        // Draw_bullet(bullet_texture, renderer);
         Draw_spaceship(spaceship_texture, renderer);
         for (int i=0; i!=COUNT_ASTEROIDS; i++) {
             Draw_asteroid(&asteroids[i], renderer, asteroid_texture);
@@ -212,12 +261,14 @@ int main(int argc, int *argv[]) {
         if (frame_time < FRAME_DELAY) {
             SDL_Delay(FRAME_DELAY - frame_time); //дз сделать астеройд, чтобы он дрейфил в космосе случайно каждый раз
         }
-    }
+	}
 
     SDL_DestroyTexture(spaceship_texture);
     SDL_DestroyTexture(asteroid_texture);
+    SDL_DestroyTexture(bullet_texture);
     SDL_FreeSurface(spaceship_image);
     SDL_FreeSurface(asteroid_image);
+    SDL_FreeSurface(bullet_image);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit(); // дз сделать пули(пулю) можно выстреливать, летит с постояннойц скоросте с направлением выстрела
