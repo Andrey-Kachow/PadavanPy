@@ -6,8 +6,8 @@
 #include <string.h>
 #include <math.h>
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 1000
+#define SCREEN_HEIGHT 600
 #define THRUST_POWER 1000
 #define THRUST_POWER_ASTEROID 0.025
 #define THRUST_POWER_BULLET 0.10
@@ -79,8 +79,8 @@ void Asteroid_Init(struct Asteroid * asteroid) {
 void Bullet_Init() {
     bullet.x = spaceship.x;
     bullet.y = spaceship.y;
-    bullet.vel_x = 50;
-    bullet.vel_y = 50;
+    bullet.vel_x = 50;   
+    bullet.vel_y = 50;   
     bullet.angle = spaceship.angle;
     bullet.angle_vel = spaceship.angle_vel;
 }
@@ -189,7 +189,7 @@ int main(int argc, int *argv[]) {
     }
 	SDL_Event event;
     Spaceship_Init();
-    Bullet_Init();
+    // Bullet_Init();   //    ########### Не нужно. Пуля появляется только, когда игрок стреляет
 
     Uint32 frame_last_time = SDL_GetTicks();
     // render cycle
@@ -232,7 +232,8 @@ int main(int argc, int *argv[]) {
             }
             if (keyState[SDL_SCANCODE_SPACE]) {
                 if (bullet_life == false) {
-                    Draw_bullet(bullet_texture, renderer);
+                    Bullet_Init();                // ##### Инициализания пули в момент выстрела
+                    // Draw_bullet(bullet_texture, renderer);   ##### Рисование пули происходит на каждом кадре. Нет необходимости рисовать еще раз в момент нажатия
                     bullet_life = true;
                     printf("SPACE");
                 }
@@ -249,7 +250,9 @@ int main(int argc, int *argv[]) {
         }
         
         // Рисуем
-        // Draw_bullet(bullet_texture, renderer);
+        if (bullet_life) { // ##### Рисование пули происходит при условии, что пуля существует
+            Draw_bullet(bullet_texture, renderer);
+        }
         Draw_spaceship(spaceship_texture, renderer);
         for (int i=0; i!=COUNT_ASTEROIDS; i++) {
             Draw_asteroid(&asteroids[i], renderer, asteroid_texture);
