@@ -5,9 +5,11 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include "asteroids.h"
 
-#define SCREEN_WIDTH 1000
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+#define SPACESHIP_SIZE 64
 #define THRUST_POWER 1000
 #define THRUST_POWER_ASTEROID 0.025
 #define THRUST_POWER_BULLET 0.10
@@ -16,6 +18,7 @@
 #define FRAME_DELAY (1000.0/TARGET_FPS)
 #define COUNT_ASTEROIDS 7
 #define DAMPING 0.999
+#define BULLET_RADIUS 16
 
 struct Spaceship {
     float x;
@@ -35,6 +38,8 @@ struct Bullet {
     float angle_vel;  
 };
 
+bool bullet_life = false;
+
 struct Asteroid {
     float x;
     float y;
@@ -45,9 +50,9 @@ struct Asteroid {
     int size;
 };
 
+struct List *asteroids_list;
 float radius[3] = {32, 64, 128}; // size
 struct Spaceship spaceship;
-struct Asteroid asteroid;
 struct Bullet bullet;
 bool quit = false;
 
@@ -79,8 +84,8 @@ void Asteroid_Init(struct Asteroid * asteroid) {
 void Bullet_Init() {
     bullet.x = spaceship.x;
     bullet.y = spaceship.y;
-    bullet.vel_x = 50;   
-    bullet.vel_y = 50;   
+    bullet.vel_x = 450 * cos(spaceship.angle * ((2 * M_PI) / 360));
+    bullet.vel_y = 450 * sin(spaceship.angle * ((2 * M_PI) / 360));
     bullet.angle = spaceship.angle;
     bullet.angle_vel = spaceship.angle_vel;
 }
@@ -93,23 +98,58 @@ void Spaceship_process(float delta_time) {
     spaceship.vel_y *= DAMPING;
     spaceship.angle += spaceship.angle_vel * delta_time;
     spaceship.angle_vel *= DAMPING;
+    if (spaceship.x > SCREEN_WIDTH + SPACESHIP_SIZE / 2) {
+        spaceship.x = 0 - SPACESHIP_SIZE / 2;
+    }
+    if (spaceship.x < 0 - SPACESHIP_SIZE / 2) {
+        spaceship.x = SCREEN_WIDTH + SPACESHIP_SIZE / 2;
+    }
+    if (spaceship.y > SCREEN_HEIGHT + SPACESHIP_SIZE / 2) {
+        spaceship.y = 0 - SPACESHIP_SIZE / 2;
+    }
+    if (spaceship.y < 0 - SPACESHIP_SIZE / 2) {
+        spaceship.y = SCREEN_HEIGHT + SPACESHIP_SIZE / 2;
+    }
 }
 
 void Asteroid_process(struct Asteroid * asteroid, float delta_time) {
     asteroid->x += asteroid->vel_x * delta_time;
     asteroid->y += asteroid->vel_y * delta_time;
     asteroid->angle += asteroid->angle_vel * delta_time;
+    if (asteroid->x > SCREEN_WIDTH + radius[asteroid->size]) {
+        asteroid->x = 0 - radius[asteroid->size];
+    }
+    if (asteroid->x < 0 - radius[asteroid->size]) {
+        asteroid->x = SCREEN_WIDTH + radius[asteroid->size];
+    }
+    if (asteroid->y > SCREEN_HEIGHT + radius[asteroid->size]) {
+        asteroid->y = 0 - radius[asteroid->size];
+    }
+    if (asteroid->y < 0 - radius[asteroid->size]) {
+        asteroid->y = SCREEN_HEIGHT + radius[asteroid->size];
+    }
 }
 
 void Bullet_process(float delta_time) {
     bullet.x += bullet.vel_x * delta_time;
     bullet.y += bullet.vel_y * delta_time;
     bullet.angle += bullet.angle_vel * delta_time;
+    if (bullet.x > SCREEN_WIDTH || bullet.x < 0 || bullet.y > SCREEN_HEIGHT || bullet.y < 0) {
+        bullet_life = false;
+    }
+}
+
+////////////////////////////////////////////////////////
+void Asteroid_List_process(float delta_time) {
+    for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
+        Asteroid_process(elem->asteroid, delta_time);
+    }
 }
 
 ////////////////////////////////////////////////////////
 void Spaceship_rotate(float direction, float delta_time) {
-    spaceship.angle_vel += direction * ROTATION_POWER * delta_time;
+    spaceship.angle_vel += direction * ROTATION_POWER * delta_time;\
+    bullet.angle_vel = spaceship.angle_vel;
 }
 
 void Spaceship_thrust(float delta_time) {
@@ -119,10 +159,10 @@ void Spaceship_thrust(float delta_time) {
 ////////////////////////////////////////////////////////
 void Draw_spaceship(SDL_Texture * spaceship_texture, SDL_Renderer * renderer) {
     SDL_Rect destination = {  //destination.x = spaceship.x;
-        spaceship.x - 32, 
-        spaceship.y - 32,
-        64,
-        64 
+        spaceship.x - SPACESHIP_SIZE / 2, 
+        spaceship.y - SPACESHIP_SIZE / 2,
+        SPACESHIP_SIZE,
+        SPACESHIP_SIZE 
     };
     SDL_RenderCopyEx(renderer, spaceship_texture, NULL, &destination, 90 + spaceship.angle, NULL, SDL_FLIP_NONE);
 }
@@ -137,18 +177,67 @@ void Draw_asteroid(struct Asteroid * asteroid, SDL_Renderer * renderer, SDL_Text
     SDL_RenderCopyEx(renderer, asteroid_texture, NULL, &destination, 90 + asteroid->angle, NULL, SDL_FLIP_NONE);
 }
 
+void Draw_List_asteroids(SDL_Renderer * renderer, SDL_Texture * asteroid_texture) {
+    for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
+        Draw_asteroid(elem->asteroid, renderer, asteroid_texture);
+    }
+}
+
 void Draw_bullet(SDL_Texture * bullet_texture, SDL_Renderer * renderer) {
     SDL_Rect destination = {  //destination.x = spaceship.x;
-        bullet.x - 16, 
-        bullet.y - 16,
-        32,
-        32 
+        bullet.x - BULLET_RADIUS, 
+        bullet.y - BULLET_RADIUS,
+        2 * BULLET_RADIUS,
+        2 * BULLET_RADIUS 
     };
     SDL_RenderCopyEx(renderer, bullet_texture, NULL, &destination, 90 + bullet.angle, NULL, SDL_FLIP_NONE);
 }
-////////////////////////////////////////////////////////
 
-bool bullet_life = false;
+struct Asteroid * Spawn_asteroid() {
+    struct Asteroid * asteroid = malloc(sizeof(struct Asteroid));
+    Asteroid_Init(asteroid);
+    List_append(asteroids_list, asteroid);
+    return asteroid;
+}
+
+void Asteroid_split(struct Asteroid * parent) {
+    if (parent->size == 0) {
+        return;
+    }
+    struct Asteroid * child1 = Spawn_asteroid();
+    struct Asteroid * child2 = Spawn_asteroid();
+    child1->x = parent->x;
+    child1->y = parent->y;
+    child2->x = parent->x;
+    child2->y = parent->y;
+    child1->size = parent->size - 1;
+    child2->size = parent->size - 1;
+}
+
+void Asteroid_collision() {
+    struct List_elem * prev = NULL;
+    for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
+        float dx = elem->asteroid->x - bullet.x;
+        float dy = elem->asteroid->y - bullet.y;
+        int summa = radius[elem->asteroid->size] + BULLET_RADIUS;
+        if (summa * summa >= dx * dx + dy * dy) {
+            printf("\n\n\n\nCOlision\n\n\n\n");
+            bullet_life = false;
+            Asteroid_split(elem->asteroid);
+            // удаление элемента списка
+            if (elem == asteroids_list->head) {
+                asteroids_list->head = elem->next;
+                free(elem);
+            } else {
+                prev->next = elem->next;
+                free(elem);
+            }
+            break;
+        }
+        prev = elem;
+    }
+}
+////////////////////////////////////////////////////////
 
 int main(int argc, int *argv[]) {
 	SDL_Window *window = NULL;
@@ -184,17 +273,19 @@ int main(int argc, int *argv[]) {
     SDL_Texture* bullet_texture = SDL_CreateTextureFromSurface(renderer, bullet_image);
 
     struct Asteroid asteroids[COUNT_ASTEROIDS];
-    for (int i=0; i!=COUNT_ASTEROIDS; i++) {
-        Asteroid_Init(&asteroids[i]);
-    }
+    // for (int i=0; i!=COUNT_ASTEROIDS; i++) {
+    //     Asteroid_Init(&asteroids[i]);
+    // }
 	SDL_Event event;
     Spaceship_Init();
-    // Bullet_Init();   //    ########### Не нужно. Пуля появляется только, когда игрок стреляет
+
 
     Uint32 frame_last_time = SDL_GetTicks();
     // render cycle
 
     Uint8 *keyState = SDL_GetKeyboardState(NULL);
+    asteroids_list = List_create();
+    Spawn_asteroid();
 
     while (quit == false) {
         Uint32 frame_start = SDL_GetTicks();
@@ -232,8 +323,7 @@ int main(int argc, int *argv[]) {
             }
             if (keyState[SDL_SCANCODE_SPACE]) {
                 if (bullet_life == false) {
-                    Bullet_Init();                // ##### Инициализания пули в момент выстрела
-                    // Draw_bullet(bullet_texture, renderer);   ##### Рисование пули происходит на каждом кадре. Нет необходимости рисовать еще раз в момент нажатия
+                    Bullet_Init();
                     bullet_life = true;
                     printf("SPACE");
                 }
@@ -245,18 +335,15 @@ int main(int argc, int *argv[]) {
         // Обновляем игровые объекты
         Spaceship_process(delta_time);
         Bullet_process(delta_time);
-        for (int i=0; i!=COUNT_ASTEROIDS; i++) {
-            Asteroid_process(&asteroids[i], delta_time);
-        }
+        Asteroid_List_process(delta_time);
+        Asteroid_collision();
         
         // Рисуем
-        if (bullet_life) { // ##### Рисование пули происходит при условии, что пуля существует
+        if (bullet_life == true) {
             Draw_bullet(bullet_texture, renderer);
         }
         Draw_spaceship(spaceship_texture, renderer);
-        for (int i=0; i!=COUNT_ASTEROIDS; i++) {
-            Draw_asteroid(&asteroids[i], renderer, asteroid_texture);
-        }
+        Draw_List_asteroids(renderer, asteroid_texture);
         SDL_RenderPresent(renderer);
 
         // Регулировка FPS
