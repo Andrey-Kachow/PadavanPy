@@ -14,3 +14,4 @@ struct List_elem * list_elem_create(struct Asteroid * asteroid);
 
 void List_append(struct List * list, struct Asteroid * asteroid);
 
+void List_insert_after(struct List * list, struct List_elem * prev, struct Asteroid * asteroid);

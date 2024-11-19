@@ -38,3 +38,9 @@ void List_append(struct List * list, struct Asteroid * asteroid) {
     list->head = new_elem;
 }
 
+void List_insert_after(struct List * list, struct List_elem * prev, struct Asteroid * asteroid) {
+    struct List_elem * last_most = prev->next;
+    struct List_elem * new_elem = list_elem_create(asteroid);
+    prev->next = new_elem;
+    new_elem->next = last_most;
+}

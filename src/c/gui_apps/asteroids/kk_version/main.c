@@ -7,8 +7,8 @@
 #include <math.h>
 #include "asteroids.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 500
 #define SPACESHIP_SIZE 64
 #define THRUST_POWER 1000
 #define THRUST_POWER_ASTEROID 0.025
@@ -193,43 +193,56 @@ void Draw_bullet(SDL_Texture * bullet_texture, SDL_Renderer * renderer) {
     SDL_RenderCopyEx(renderer, bullet_texture, NULL, &destination, 90 + bullet.angle, NULL, SDL_FLIP_NONE);
 }
 
-struct Asteroid * Spawn_asteroid() {
+struct Asteroid * Spawn_asteroid(struct List_elem * prev) {
     struct Asteroid * asteroid = malloc(sizeof(struct Asteroid));
     Asteroid_Init(asteroid);
-    List_append(asteroids_list, asteroid);
+    if (prev == NULL) {
+        List_append(asteroids_list, asteroid);
+    } else {
+        List_insert_after(asteroids_list, prev, asteroid);
+    }
     return asteroid;
 }
 
-void Asteroid_split(struct Asteroid * parent) {
-    if (parent->size == 0) {
+void Asteroid_split(struct List_elem * parent) {
+    struct Asteroid * parent_asteroid = parent->asteroid;
+    if (parent_asteroid->size == 0) {
         return;
     }
-    struct Asteroid * child1 = Spawn_asteroid();
-    struct Asteroid * child2 = Spawn_asteroid();
-    child1->x = parent->x;
-    child1->y = parent->y;
-    child2->x = parent->x;
-    child2->y = parent->y;
-    child1->size = parent->size - 1;
-    child2->size = parent->size - 1;
+    printf("first");
+    struct Asteroid * child1 = Spawn_asteroid(parent);
+    printf("second");
+    struct Asteroid * child2 = Spawn_asteroid(parent);
+    printf("second created");
+    child1->x = parent_asteroid->x;
+    child1->y = parent_asteroid->y;
+    child2->x = parent_asteroid->x;
+    child2->y = parent_asteroid->y;
+    child1->size = parent_asteroid->size - 1;
+    child2->size = parent_asteroid->size - 1;
 }
 
 void Asteroid_collision() {
     struct List_elem * prev = NULL;
     for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
+        if (!bullet_life) {
+            continue;
+        }
         float dx = elem->asteroid->x - bullet.x;
         float dy = elem->asteroid->y - bullet.y;
         int summa = radius[elem->asteroid->size] + BULLET_RADIUS;
         if (summa * summa >= dx * dx + dy * dy) {
             printf("\n\n\n\nCOlision\n\n\n\n");
             bullet_life = false;
-            Asteroid_split(elem->asteroid);
+            Asteroid_split(elem);
             // удаление элемента списка
             if (elem == asteroids_list->head) {
                 asteroids_list->head = elem->next;
+                free(elem->asteroid);
                 free(elem);
             } else {
                 prev->next = elem->next;
+                free(elem->asteroid);
                 free(elem);
             }
             break;
@@ -285,7 +298,7 @@ int main(int argc, int *argv[]) {
 
     Uint8 *keyState = SDL_GetKeyboardState(NULL);
     asteroids_list = List_create();
-    Spawn_asteroid();
+    Spawn_asteroid(NULL);
 
     while (quit == false) {
         Uint32 frame_start = SDL_GetTicks();
