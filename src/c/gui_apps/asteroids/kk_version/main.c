@@ -7,8 +7,8 @@
 #include <math.h>
 #include "asteroids.h"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 500
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
 #define SPACESHIP_SIZE 64
 #define THRUST_POWER 1000
 #define THRUST_POWER_ASTEROID 0.025
@@ -19,6 +19,7 @@
 #define COUNT_ASTEROIDS 7
 #define DAMPING 0.999
 #define BULLET_RADIUS 16
+#define COLLISION_DEPTH 20
 
 struct Spaceship {
     float x;
@@ -27,6 +28,9 @@ struct Spaceship {
     float vel_y;
     float angle;     // угол
     float angle_vel; // скорость угла
+    int life;
+    enum SpaceshipState status;
+    Uint32 destroy_time;
 };
 
 struct Bullet {
@@ -50,11 +54,20 @@ struct Asteroid {
     int size;
 };
 
+enum SpaceshipState {Good, Recovery};
 struct List *asteroids_list;
 float radius[3] = {32, 64, 128}; // size
 struct Spaceship spaceship;
 struct Bullet bullet;
 bool quit = false;
+
+float cos_deg(float angle) {
+    return cos(angle * ((2 * M_PI) / 360));
+}
+
+float sin_deg(float angle) {
+    return sin(angle * ((2 * M_PI) / 360));
+}
 
 ////////////////////////////////////////////////////////
 void Spaceship_Init() {
@@ -64,6 +77,8 @@ void Spaceship_Init() {
     spaceship.vel_y = 0;
     spaceship.angle = 0;
     spaceship.angle_vel = 0;
+    spaceship.status = Good;
+    spaceship.life = 3;
 }
 
 float random_float(float min, float max) {
@@ -84,8 +99,8 @@ void Asteroid_Init(struct Asteroid * asteroid) {
 void Bullet_Init() {
     bullet.x = spaceship.x;
     bullet.y = spaceship.y;
-    bullet.vel_x = 450 * cos(spaceship.angle * ((2 * M_PI) / 360));
-    bullet.vel_y = 450 * sin(spaceship.angle * ((2 * M_PI) / 360));
+    bullet.vel_x = 450 * cos_deg(spaceship.angle);
+    bullet.vel_y = 450 * sin_deg(spaceship.angle);
     bullet.angle = spaceship.angle;
     bullet.angle_vel = spaceship.angle_vel;
 }
@@ -193,6 +208,16 @@ void Draw_bullet(SDL_Texture * bullet_texture, SDL_Renderer * renderer) {
     SDL_RenderCopyEx(renderer, bullet_texture, NULL, &destination, 90 + bullet.angle, NULL, SDL_FLIP_NONE);
 }
 
+void Draw_background(SDL_Texture * background_texture, SDL_Renderer * renderer) {
+    SDL_Rect destination = {  
+        0,
+        0,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT 
+    };
+    SDL_RenderCopyEx(renderer, background_texture, NULL, &destination, 0, NULL, SDL_FLIP_NONE);
+}
+
 struct Asteroid * Spawn_asteroid(struct List_elem * prev) {
     struct Asteroid * asteroid = malloc(sizeof(struct Asteroid));
     Asteroid_Init(asteroid);
@@ -216,8 +241,19 @@ void Asteroid_split(struct List_elem * parent) {
     printf("second created");
     child1->x = parent_asteroid->x;
     child1->y = parent_asteroid->y;
+    // child1->vel_x = random_float(-150, 150);
+    // child1->vel_y = random_float(-150, 150);
+    
+    float speed = random_float(100, 300);
+    float rand_angle = random_float(-180, 180);
+    child1->vel_x = cos_deg(rand_angle) * speed;
+    child1->vel_y = sin_deg(rand_angle) * speed;
+
     child2->x = parent_asteroid->x;
     child2->y = parent_asteroid->y;
+    child2->vel_x = -child1->vel_x;
+    child2->vel_y = -child1->vel_y;
+
     child1->size = parent_asteroid->size - 1;
     child2->size = parent_asteroid->size - 1;
 }
@@ -225,15 +261,29 @@ void Asteroid_split(struct List_elem * parent) {
 void Asteroid_collision() {
     struct List_elem * prev = NULL;
     for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
-        if (!bullet_life) {
-            continue;
+        bool asteroid_destroy = false;
+        if (bullet_life) {
+            float dx = elem->asteroid->x - bullet.x;
+            float dy = elem->asteroid->y - bullet.y;
+            int summa = radius[elem->asteroid->size] + BULLET_RADIUS - COLLISION_DEPTH;
+            if (summa * summa >= dx * dx + dy * dy) {
+                printf("\n\n\n\nCOlision\n\n\n\n");
+                bullet_life = false;
+                asteroid_destroy = true;
+            }    
         }
-        float dx = elem->asteroid->x - bullet.x;
-        float dy = elem->asteroid->y - bullet.y;
-        int summa = radius[elem->asteroid->size] + BULLET_RADIUS;
-        if (summa * summa >= dx * dx + dy * dy) {
-            printf("\n\n\n\nCOlision\n\n\n\n");
-            bullet_life = false;
+        if (spaceship.status == Good && spaceship.life > 0) {
+            float dx = elem->asteroid->x - spaceship.x;
+            float dy = elem->asteroid->y - spaceship.y;
+            int summa = radius[elem->asteroid->size] + 32 - COLLISION_DEPTH;
+            if (summa * summa >= dx * dx + dy * dy) {
+                spaceship.destroy_time = SDL_GetTicks();
+                spaceship.status = Recovery;
+                asteroid_destroy = true;
+                spaceship.life -= 1;
+            }
+        }
+        if (asteroid_destroy == true) {
             Asteroid_split(elem);
             // удаление элемента списка
             if (elem == asteroids_list->head) {
@@ -245,11 +295,11 @@ void Asteroid_collision() {
                 free(elem->asteroid);
                 free(elem);
             }
-            break;
         }
         prev = elem;
     }
 }
+
 ////////////////////////////////////////////////////////
 
 int main(int argc, int *argv[]) {
@@ -278,6 +328,10 @@ int main(int argc, int *argv[]) {
     }
 
 	srand(time(NULL));
+    SDL_Surface* background = SDL_LoadBMP("background.bmp");
+    SDL_Texture* background_texture = SDL_CreateTextureFromSurface(renderer, background);
+    SDL_Surface* spaceship_invis_image = SDL_LoadBMP("spaceship_transparent.bmp");
+    SDL_Texture* spaceship_invis_texture = SDL_CreateTextureFromSurface(renderer, spaceship_invis_image);
     SDL_Surface* spaceship_image = SDL_LoadBMP("spaceship.bmp");
     SDL_Texture* spaceship_texture = SDL_CreateTextureFromSurface(renderer, spaceship_image);
     SDL_Surface* asteroid_image = SDL_LoadBMP("asteroid.bmp");
@@ -299,6 +353,7 @@ int main(int argc, int *argv[]) {
     Uint8 *keyState = SDL_GetKeyboardState(NULL);
     asteroids_list = List_create();
     Spawn_asteroid(NULL);
+
 
     while (quit == false) {
         Uint32 frame_start = SDL_GetTicks();
@@ -347,22 +402,35 @@ int main(int argc, int *argv[]) {
 
         // Обновляем игровые объекты
         Spaceship_process(delta_time);
+        if (spaceship.status == Recovery) {
+            int recovery_elapse = frame_start - spaceship.destroy_time; 
+            if (recovery_elapse > 3000) {
+                spaceship.status = Good;
+            }
+        }
         Bullet_process(delta_time);
         Asteroid_List_process(delta_time);
         Asteroid_collision();
         
         // Рисуем
+        Draw_background(background_texture, renderer);
         if (bullet_life == true) {
             Draw_bullet(bullet_texture, renderer);
         }
-        Draw_spaceship(spaceship_texture, renderer);
+        if (spaceship.life > 0) {
+            if (spaceship.status == Recovery) {
+                Draw_spaceship(spaceship_invis_texture, renderer);
+            } else {
+                Draw_spaceship(spaceship_texture, renderer);
+            }
+        }
         Draw_List_asteroids(renderer, asteroid_texture);
         SDL_RenderPresent(renderer);
 
         // Регулировка FPS
-        Uint32 frame_time = SDL_GetTicks() - frame_start; // каждую секунду новый астеройд
+        Uint32 frame_time = SDL_GetTicks() - frame_start;
         if (frame_time < FRAME_DELAY) {
-            SDL_Delay(FRAME_DELAY - frame_time); //дз сделать астеройд, чтобы он дрейфил в космосе случайно каждый раз
+            SDL_Delay(FRAME_DELAY - frame_time); 
         }
 	}
 
@@ -374,8 +442,8 @@ int main(int argc, int *argv[]) {
     SDL_FreeSurface(bullet_image);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit(); // дз сделать пули(пулю) можно выстреливать, летит с постояннойц скоросте с направлением выстрела
-    // не можем выпускать пулю пока не исчезнет старая
+    SDL_Quit();
 
-    return 0;
+    return 0; // дз Сделать индикатор здоровья коробля, без использования текста (картинками), поверх всех элементов(последними)
+    // по желанию после проигрыша делатьо черное сердце, bmp, в ряд. 
 }
