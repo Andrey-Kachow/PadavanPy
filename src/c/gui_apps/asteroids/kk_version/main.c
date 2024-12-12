@@ -7,6 +7,7 @@
 #include <math.h>
 #include "asteroids.h"
 
+
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define SPACESHIP_SIZE 64
@@ -20,6 +21,9 @@
 #define DAMPING 0.999
 #define BULLET_RADIUS 16
 #define COLLISION_DEPTH 20
+#define LIFE_COUNT 3
+#define SPAWN_INTERVAL 10000
+#define EXPLOSION_FRAME_COUNT 152
 
 struct Spaceship {
     float x;
@@ -42,7 +46,17 @@ struct Bullet {
     float angle_vel;  
 };
 
+struct Animation * explosion_animation = 0;
 bool bullet_life = false;
+SDL_Texture* explosion_frames[EXPLOSION_FRAME_COUNT];
+bool pause_status = false;
+
+struct Animation {
+    float x;
+    float y;
+    int size;
+    int anim_count;
+};
 
 struct Asteroid {
     float x;
@@ -78,7 +92,7 @@ void Spaceship_Init() {
     spaceship.angle = 0;
     spaceship.angle_vel = 0;
     spaceship.status = Good;
-    spaceship.life = 3;
+    spaceship.life = LIFE_COUNT;
 }
 
 float random_float(float min, float max) {
@@ -86,9 +100,26 @@ float random_float(float min, float max) {
     return (float)rand() / ((float)(RAND_MAX / width)) + min;
 }
 
+struct Animation* create_explosion_animation(float x, float y, int size) {
+    struct Animation* animation = malloc(sizeof(struct Animation));
+    if (animation == NULL) {
+        return NULL;
+    }
+    animation->x = x;
+    animation->y = y;
+    animation->size = size;
+    animation->anim_count = 0;
+    return animation;
+} 
+
 void Asteroid_Init(struct Asteroid * asteroid) {
-    asteroid->x = rand() % (SCREEN_WIDTH - 1 + 1) + 1;
-    asteroid->y = rand() % (SCREEN_HEIGHT - 1 + 1) + 1;
+    // asteroid->x = rand() % (SCREEN_WIDTH - 1 + 1) + 1;
+    // asteroid->y = rand() % (SCREEN_HEIGHT - 1 + 1) + 1;
+
+    float spawn_radius = 10000;
+    float random_angle = random_float(0, 360);
+    asteroid->x = spawn_radius * cos_deg(random_angle);
+    asteroid->y = spawn_radius * sin_deg(random_angle);
     asteroid->vel_x = random_float(-50, 50);
     asteroid->vel_y = random_float(-50, 50);
     asteroid->angle = random_float(-M_PI, M_PI);
@@ -127,7 +158,7 @@ void Spaceship_process(float delta_time) {
     }
 }
 
-void Asteroid_process(struct Asteroid * asteroid, float delta_time) {
+void Asteroid_process(struct Asteroid * asteroid, float delta_time) { // анимация взрыва дз или сделать возможность паузы
     asteroid->x += asteroid->vel_x * delta_time;
     asteroid->y += asteroid->vel_y * delta_time;
     asteroid->angle += asteroid->angle_vel * delta_time;
@@ -218,6 +249,13 @@ void Draw_background(SDL_Texture * background_texture, SDL_Renderer * renderer) 
     SDL_RenderCopyEx(renderer, background_texture, NULL, &destination, 0, NULL, SDL_FLIP_NONE);
 }
 
+void Draw_heart(int heart_index, SDL_Texture * heart_texture, SDL_Renderer * renderer) {
+    int number = 50;
+    number *= heart_index;
+    SDL_Rect destination = { (SCREEN_WIDTH - 70) - number, SCREEN_HEIGHT - 80, 64, 64 };
+    SDL_RenderCopyEx(renderer, heart_texture, NULL, &destination, 0, NULL, SDL_FLIP_NONE);
+}
+
 struct Asteroid * Spawn_asteroid(struct List_elem * prev) {
     struct Asteroid * asteroid = malloc(sizeof(struct Asteroid));
     Asteroid_Init(asteroid);
@@ -258,6 +296,25 @@ void Asteroid_split(struct List_elem * parent) {
     child2->size = parent_asteroid->size - 1;
 }
 
+void Draw_animation(struct Animation * animation, SDL_Renderer * renderer) {
+    printf("%f %f %d\n", animation->x, animation->y, animation->size);
+    SDL_Rect destination = {  //destination.x = spaceship.x;
+        animation->x - radius[animation->size], 
+        animation->y - radius[animation->size],
+        2 * radius[animation->size],
+        2 * radius[animation->size] 
+    };
+    SDL_RenderCopyEx(renderer, explosion_frames[animation->anim_count], NULL, &destination, 0, NULL, SDL_FLIP_NONE);
+    if (pause_status == false) {
+        animation->anim_count += 1;
+        if (animation->anim_count == EXPLOSION_FRAME_COUNT) {
+            free(animation);
+            explosion_animation = 0;
+        }
+    }
+}
+
+
 void Asteroid_collision() {
     struct List_elem * prev = NULL;
     for (struct List_elem * elem = asteroids_list->head; elem != NULL; elem = elem->next) {
@@ -284,6 +341,7 @@ void Asteroid_collision() {
             }
         }
         if (asteroid_destroy == true) {
+            explosion_animation = create_explosion_animation(elem->asteroid->x, elem->asteroid->y, elem->asteroid->size);
             Asteroid_split(elem);
             // удаление элемента списка
             if (elem == asteroids_list->head) {
@@ -300,7 +358,18 @@ void Asteroid_collision() {
     }
 }
 
+void Draw_hearts(SDL_Texture * heart_texture, SDL_Texture * dead_heart_texture, SDL_Renderer * renderer) {
+    for (int i=0; i<LIFE_COUNT; i++) {
+        if (LIFE_COUNT-spaceship.life > i) {
+            Draw_heart(i, dead_heart_texture, renderer);
+        } else {
+            Draw_heart(i, heart_texture, renderer);
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////
+int score = 0;
 
 int main(int argc, int *argv[]) {
 	SDL_Window *window = NULL;
@@ -339,6 +408,21 @@ int main(int argc, int *argv[]) {
     SDL_Surface* bullet_image = SDL_LoadBMP("bullet.bmp");
     SDL_Texture* bullet_texture = SDL_CreateTextureFromSurface(renderer, bullet_image);
 
+    char file_path_buffer[40];
+    for (int i=0; i!=EXPLOSION_FRAME_COUNT; i++) { // explosions
+        sprintf(file_path_buffer, "explosion_animation\\Explosion_%05d.bmp", i+6);
+        SDL_Surface* explosion_frame = SDL_LoadBMP(file_path_buffer);
+        explosion_frames[i] = SDL_CreateTextureFromSurface(renderer, explosion_frame);
+        printf("%s     %d       %d\n", file_path_buffer, explosion_frame, explosion_frames[i]);
+        SDL_FreeSurface(explosion_frame);
+    }
+
+    // hearts
+    SDL_Surface* heart_image = SDL_LoadBMP("heart.bmp");
+    SDL_Texture* heart_texture = SDL_CreateTextureFromSurface(renderer, heart_image);
+    SDL_Surface* dead_heart_image = SDL_LoadBMP("dead_heart.bmp");
+    SDL_Texture* dead_heart_texture = SDL_CreateTextureFromSurface(renderer, dead_heart_image);
+    
     struct Asteroid asteroids[COUNT_ASTEROIDS];
     // for (int i=0; i!=COUNT_ASTEROIDS; i++) {
     //     Asteroid_Init(&asteroids[i]);
@@ -346,14 +430,15 @@ int main(int argc, int *argv[]) {
 	SDL_Event event;
     Spaceship_Init();
 
-
+    Uint32 pause_time = 0;
+    Uint32 end_pause_time = 0;
+    Uint32 pause_durashion = 0;
     Uint32 frame_last_time = SDL_GetTicks();
     // render cycle
-
     Uint8 *keyState = SDL_GetKeyboardState(NULL);
     asteroids_list = List_create();
+    Uint32 last_spawn = 0;
     Spawn_asteroid(NULL);
-
 
     while (quit == false) {
         Uint32 frame_start = SDL_GetTicks();
@@ -377,40 +462,61 @@ int main(int argc, int *argv[]) {
             //         printf("RIGHT");
             //     }
             // }
-            if (keyState[SDL_SCANCODE_UP]) {
-                Spaceship_thrust(delta_time);
-                printf("FORWARD");
-            }
-            if (keyState[SDL_SCANCODE_LEFT]) {
-                Spaceship_rotate(-1, delta_time);
-                printf("LEFT");
-            }
-            if (keyState[SDL_SCANCODE_RIGHT]) {
-                Spaceship_rotate(1, delta_time);
-                printf("RIGHT");
-            }
-            if (keyState[SDL_SCANCODE_SPACE]) {
-                if (bullet_life == false) {
-                    Bullet_Init();
-                    bullet_life = true;
-                    printf("SPACE");
+            if (pause_status == false) {
+                if (keyState[SDL_SCANCODE_UP]) {
+                    Spaceship_thrust(delta_time);
+                    printf("FORWARD");
                 }
+                if (keyState[SDL_SCANCODE_LEFT]) {
+                    Spaceship_rotate(-1, delta_time);
+                    printf("LEFT");
+                }
+                if (keyState[SDL_SCANCODE_RIGHT]) {
+                    Spaceship_rotate(1, delta_time);
+                    printf("RIGHT");
+                }
+                if (keyState[SDL_SCANCODE_SPACE]) {
+                    if (bullet_life == false) {
+                        Bullet_Init();
+                        bullet_life = true;
+                        printf("SPACE");
+                    }
+                }
+            }
+            if (keyState[SDL_SCANCODE_ESCAPE]) {
+                if (pause_status == false) {
+                    pause_status = true;
+                    pause_time = SDL_GetTicks();
+                } else {
+                    pause_status = false;
+                    end_pause_time = SDL_GetTicks();
+                    pause_durashion = end_pause_time - pause_time;
+                    spaceship.destroy_time += pause_durashion;
+                }
+                printf("ESC");
             }
 		}
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         // Обновляем игровые объекты
-        Spaceship_process(delta_time);
-        if (spaceship.status == Recovery) {
-            int recovery_elapse = frame_start - spaceship.destroy_time; 
-            if (recovery_elapse > 3000) {
-                spaceship.status = Good;
+        if (pause_status == false) {
+            if (frame_start - last_spawn >= SPAWN_INTERVAL) {
+                Spawn_asteroid(NULL);
+                last_spawn = frame_start;
             }
+            Spaceship_process(delta_time);
+            if (spaceship.status == Recovery) {
+                int recovery_elapse = frame_start - spaceship.destroy_time; 
+                if (recovery_elapse > 3000) {
+                    spaceship.status = Good;
+                }
+            }
+            Bullet_process(delta_time);
+            Asteroid_List_process(delta_time);
+            Asteroid_collision();
+
         }
-        Bullet_process(delta_time);
-        Asteroid_List_process(delta_time);
-        Asteroid_collision();
         
         // Рисуем
         Draw_background(background_texture, renderer);
@@ -425,6 +531,12 @@ int main(int argc, int *argv[]) {
             }
         }
         Draw_List_asteroids(renderer, asteroid_texture);
+        if (explosion_animation != NULL) {
+            printf("EXPLOCION\n");
+            printf("%d\n", explosion_animation->anim_count);
+            Draw_animation(explosion_animation, renderer);     
+        }
+        Draw_hearts(heart_texture, dead_heart_texture, renderer);
         SDL_RenderPresent(renderer);
 
         // Регулировка FPS
@@ -445,5 +557,5 @@ int main(int argc, int *argv[]) {
     SDL_Quit();
 
     return 0; // дз Сделать индикатор здоровья коробля, без использования текста (картинками), поверх всех элементов(последними)
-    // по желанию после проигрыша делатьо черное сердце, bmp, в ряд. 
+    // по желанию после проигрыша делатьо черное сердце, bmp, в ряд. Aseprite удобное. 
 }
