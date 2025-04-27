@@ -1,0 +1,34 @@
+# Ignore build output
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# Ignore user-specific Visual Studio files
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+*.log
+
+# Ignore backup and temp files
+*.bak
+*.tmp
+*~
+
+# Ignore build directories
+Debug/
+Release/
+x64/
+x86/
+bin/
+build/
+
+# Ignore CMake artifacts if using CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile

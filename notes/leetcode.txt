@@ -2,3 +2,9 @@ Beginner friendly Leetcode problems to test:
 
     1) https://leetcode.com/problems/distribute-money-to-maximum-children/
     2) https://leetcode.com/problems/add-binary/
+
+
+
+hmm...
+
+https://leetcode.com/problems/first-bad-version/description/
