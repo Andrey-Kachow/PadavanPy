@@ -126,7 +126,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CREATE:
-
+        //MessageBox(NULL, L"LOL", L"KEK", MB_OK);
         break;
 
     case WM_COMMAND:
