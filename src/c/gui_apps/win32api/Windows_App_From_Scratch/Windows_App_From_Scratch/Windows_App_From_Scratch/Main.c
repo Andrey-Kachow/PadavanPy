@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 
 // 1. Basic signature
 // int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {}
@@ -14,7 +14,7 @@ int WINAPI WinMain(
     _In_ int nShowCmd
 ) {
     // 2. Dialog
-	MessageBox(NULL, L"Welcome to my app", L"Hello", MB_OK);
+	MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OK);
 
     WNDCLASSW windowClass = {0};
     //
