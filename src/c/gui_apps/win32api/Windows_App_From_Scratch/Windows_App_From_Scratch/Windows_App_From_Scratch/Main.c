@@ -2,11 +2,29 @@
 
 const LPCWSTR MY_WINDOW_CLASS = L"myAmazingWindowClass";
 
+HMENU myHMenu;
+
+// 7. Menus:
+void AddMenus(HWND hWnd) {
+    myHMenu = CreateMenu();
+
+    AppendMenu(myHMenu, MF_STRING, NULL, L"Файл");
+
+    SetMenu(hWnd, myHMenu);
+}
+
 // 1. Basic signature
 // int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {}
 
+// 3.2. - Window procedure signature:
 LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lparam) {
+    
+    // 6. Processing messages in switch
     switch (message) {
+        // (7
+    case WM_CREATE:
+        AddMenus(hWnd);
+        break;
     case WM_DESTROY:
         PostQuitMessage(0); // makes GetMessage return false;
         break;
@@ -24,7 +42,7 @@ int WINAPI WinMain(
     // 2. Dialog
 	//MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OK);
 
-    // 3. Widnow Class
+    // 3.1 Widnow Class
     WNDCLASSW windowClass = { 0 };
     //
     windowClass.hbrBackground = COLOR_WINDOW;
