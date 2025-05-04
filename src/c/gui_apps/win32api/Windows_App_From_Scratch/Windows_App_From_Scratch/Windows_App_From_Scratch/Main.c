@@ -8,7 +8,8 @@ HMENU myHMenu;
 void AddMenus(HWND hWnd) {
     myHMenu = CreateMenu();
 
-    AppendMenu(myHMenu, MF_STRING, NULL, L"Файл");
+    AppendMenu(myHMenu, MF_STRING, 1, L"Файл");
+    AppendMenu(myHMenu, MF_STRING, NULL, L"Помощь");
 
     SetMenu(hWnd, myHMenu);
 }
@@ -25,6 +26,15 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
     case WM_CREATE:
         AddMenus(hWnd);
         break;
+    case WM_COMMAND:
+
+        switch (wParam) {
+        case 1:
+            MessageBeep(MB_OK);
+            break;
+        }
+
+        break;
     case WM_DESTROY:
         PostQuitMessage(0); // makes GetMessage return false;
         break;
@@ -40,10 +50,13 @@ int WINAPI WinMain(
     _In_ int nShowCmd
 ) {
     // 2. Dialog
-	int welcomeDialogResult = MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OK);
+	int welcomeDialogResult = MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OKCANCEL);
     // 2.5 dialog actions response
     if (welcomeDialogResult == IDOK) {
         MessageBox(NULL, L"Вы нажали ОК!", L"Уведомление", MB_OK);
+    }
+    else if (welcomeDialogResult == IDCANCEL) {
+        MessageBox(NULL, L"Вы нажали Отмена", L"Уведомление", MB_OK);
     }
 
     // 3.1 Widnow Class
