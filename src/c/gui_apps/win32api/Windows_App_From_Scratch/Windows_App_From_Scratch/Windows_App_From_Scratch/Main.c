@@ -40,7 +40,11 @@ int WINAPI WinMain(
     _In_ int nShowCmd
 ) {
     // 2. Dialog
-	//MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OK);
+	int welcomeDialogResult = MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OK);
+    // 2.5 dialog actions response
+    if (welcomeDialogResult == IDOK) {
+        MessageBox(NULL, L"Вы нажали ОК!", L"Уведомление", MB_OK);
+    }
 
     // 3.1 Widnow Class
     WNDCLASSW windowClass = { 0 };
