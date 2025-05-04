@@ -1,5 +1,9 @@
 ﻿#include <windows.h>
 
+#define MENU_EDIT_UNDO_ACTION_ID 2
+#define MENU_EDIT_REDO_ACTION_ID 3
+#define MENU_BEEP_ACTION_ID 1
+
 const LPCWSTR MY_WINDOW_CLASS = L"myAmazingWindowClass";
 
 HMENU myHMenu;
@@ -8,13 +12,18 @@ HMENU myHMenu;
 void AddMenus(HWND hWnd) {
     myHMenu = CreateMenu();
 
-    AppendMenu(myHMenu, MF_STRING, 1, L"Файл");
+    AppendMenu(myHMenu, MF_STRING, MENU_BEEP_ACTION_ID, L"Файл");
     AppendMenu(myHMenu, MF_STRING, NULL, L"Помощь");
 
     // 9. Menu with extra options
     HMENU myHEditMenu = CreateMenu();
-    AppendMenu(myHEditMenu, MF_STRING, 2, L"Отменить");
-    AppendMenu(myHEditMenu, MF_STRING, 3, L"Применить");
+    AppendMenu(myHEditMenu, MF_STRING, MENU_EDIT_UNDO_ACTION_ID, L"Отменить");
+    AppendMenu(myHEditMenu, MF_STRING, MENU_EDIT_REDO_ACTION_ID, L"Применить");
+
+    // 10. Separator
+    AppendMenu(myHEditMenu, MF_SEPARATOR, NULL, NULL);
+    AppendMenu(myHEditMenu, MF_STRING, NULL, L"Создать");
+
     AppendMenu(myHMenu, MF_POPUP, myHEditMenu, L"Правка");
 
     SetMenu(hWnd, myHMenu);
@@ -36,7 +45,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
         // 8. Process nessage if Beep sound
         switch (wParam) {
-        case 1:
+        case MENU_BEEP_ACTION_ID:
             MessageBeep(MB_OK);
             break;
         }
