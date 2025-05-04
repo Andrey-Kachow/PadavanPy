@@ -11,6 +11,12 @@ void AddMenus(HWND hWnd) {
     AppendMenu(myHMenu, MF_STRING, 1, L"Файл");
     AppendMenu(myHMenu, MF_STRING, NULL, L"Помощь");
 
+    // 9. Menu with extra options
+    HMENU myHEditMenu = CreateMenu();
+    AppendMenu(myHEditMenu, MF_STRING, 2, L"Отменить");
+    AppendMenu(myHEditMenu, MF_STRING, 3, L"Применить");
+    AppendMenu(myHMenu, MF_POPUP, myHEditMenu, L"Правка");
+
     SetMenu(hWnd, myHMenu);
 }
 
@@ -28,6 +34,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         break;
     case WM_COMMAND:
 
+        // 8. Process nessage if Beep sound
         switch (wParam) {
         case 1:
             MessageBeep(MB_OK);
