@@ -8,7 +8,7 @@ const LPCWSTR MY_WINDOW_CLASS = L"myAmazingWindowClass";
 
 HMENU myHMenu;
 
-// 7. Menus:
+// 7. Menus: 
 void AddMenus(HWND hWnd) {
     myHMenu = CreateMenu();
 
