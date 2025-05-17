@@ -4,6 +4,8 @@
 #define MENU_EDIT_REDO_ACTION_ID 3
 #define MENU_BEEP_ACTION_ID 1
 
+#define MY_TEXTBOX_ID 105
+
 const LPCWSTR MY_WINDOW_CLASS = L"myAmazingWindowClass";
 
 HMENU myHMenu;
@@ -29,6 +31,13 @@ void AddMenus(HWND hWnd) {
     SetMenu(hWnd, myHMenu);
 }
 
+HWND hEdit;
+
+void DrawUI(HWND hWnd) {
+    hEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+        10, 10, 200, 20, hWnd, MY_TEXTBOX_ID, NULL, NULL);
+}
+
 // 1. Basic signature
 // int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {}
 
@@ -40,6 +49,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         // (7
     case WM_CREATE:
         AddMenus(hWnd);
+        DrawUI(hWnd);
         break;
     case WM_COMMAND:
 
@@ -48,6 +58,12 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         case MENU_BEEP_ACTION_ID:
             MessageBeep(MB_OK);
             break;
+        }
+
+        if (LOWORD(wParam) == MY_TEXTBOX_ID && HIWORD(wParam) == EN_CHANGE) {
+            char buffer[256];
+            GetWindowText(hEdit, buffer, sizeof(buffer));
+            SetWindowText(hWnd, buffer);  // Set window title to textbox content
         }
 
         break;
