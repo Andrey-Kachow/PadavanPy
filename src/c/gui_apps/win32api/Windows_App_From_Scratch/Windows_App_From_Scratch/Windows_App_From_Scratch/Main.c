@@ -1,10 +1,14 @@
 ﻿#include <windows.h>
+#include <shellscalingapi.h>
+#include <commdlg.h>  // For GetOpenFileName
 
 #define MENU_EDIT_UNDO_ACTION_ID 2
 #define MENU_EDIT_REDO_ACTION_ID 3
 #define MENU_BEEP_ACTION_ID 1
 
 #define MY_TEXTBOX_ID 105
+
+#define ID_FILE_SELECT 12345
 
 const LPCWSTR MY_WINDOW_CLASS = L"myAmazingWindowClass";
 
@@ -24,7 +28,7 @@ void AddMenus(HWND hWnd) {
 
     // 10. Separator
     AppendMenu(myHEditMenu, MF_SEPARATOR, NULL, NULL);
-    AppendMenu(myHEditMenu, MF_STRING, NULL, L"Создать");
+    AppendMenu(myHEditMenu, MF_STRING, ID_FILE_SELECT, L"Создать");
 
     AppendMenu(myHMenu, MF_POPUP, myHEditMenu, L"Правка");
 
@@ -34,8 +38,16 @@ void AddMenus(HWND hWnd) {
 HWND hEdit;
 
 void DrawUI(HWND hWnd) {
-    hEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-        10, 10, 200, 20, hWnd, MY_TEXTBOX_ID, NULL, NULL);
+    
+    //UINT dpi = GetDpiForWindow(hWnd);
+
+    //int x = ScaleByDPI(10, dpi);
+    //int y = ScaleByDPI(10, dpi);
+    //int w = ScaleByDPI(200, dpi);
+    //int h = ScaleByDPI(20, dpi);
+
+    //hEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+    //    x, y, w, h, hWnd, MY_TEXTBOX_ID, NULL, NULL);
 }
 
 // 1. Basic signature
@@ -66,6 +78,24 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
             SetWindowText(hWnd, buffer);  // Set window title to textbox content
         }
 
+        if (LOWORD(wParam) == ID_FILE_SELECT) {
+            // Button clicked - open file dialog
+            char filePath[123] = "";
+
+            OPENFILENAME ofn = { 0 };
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = hWnd;
+            ofn.lpstrFile = filePath;
+            ofn.nMaxFile = MAX_PATH;
+            ofn.lpstrFilter = "All Files\0*.*\0Text Files\0*.txt\0";
+            ofn.nFilterIndex = 1;
+            ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+            if (GetOpenFileName(&ofn)) {
+                MessageBoxA(hWnd, ofn.lpstrFile, "Selected File", MB_OK);
+            }
+        }
+
         break;
     case WM_DESTROY:
         PostQuitMessage(0); // makes GetMessage return false;
@@ -81,6 +111,8 @@ int WINAPI WinMain(
     _In_ LPSTR lpCmdLine,
     _In_ int nShowCmd
 ) {
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
     // 2. Dialog
 	int welcomeDialogResult = MessageBox(NULL, L"Добро Пожаловать!", L"Привет", MB_OKCANCEL);
     // 2.5 dialog actions response
