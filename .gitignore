@@ -1,3 +1,6 @@
+src/python/sample_projects/other/asbest/src_texts
+
+
 *.ppm
 # C libraries not to distribute
 SDL2.dll
