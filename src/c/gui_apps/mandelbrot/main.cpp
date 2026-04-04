@@ -81,26 +81,27 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	window = SDL_CreateWindow("Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Window* window; = SDL_CreateWindow("Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	
-	init_initial_game();
-
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (renderer == NULL) {
+		printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+		return 1;
+	}
 	screen_surface = SDL_GetWindowSurface(window);
-
+	
 	alive_color = SDL_MapRGB(screen_surface->format, 255, 255, 255);
 	dead_color = SDL_MapRGB(screen_surface->format, 0, 0, 0);
-
+	
 	SDL_FillRect(screen_surface, NULL, dead_color);
-
 	SDL_UpdateWindowSurface(window);
-
+	
 	MandelbrotImage mandelbrotImage(SCREEN_WIDTH, SCREEN_HEIGHT);
-
+	
 	SDL_Event event;
 	bool quit = false;
 	while (quit == false) {
@@ -110,11 +111,20 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
+		if (mandelbrotImage.isDone()) {
+			SDL_Delay(50);
+			continue;
+		}
+		
 		ComplexNumber c = mandelbrotImage.getNextNumber();
 		int iterations = mandelbrot(c);
 		if (iterations < MAX_ITERATIONS) {
-			
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+		} else {
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		}
+		SDL_RenderDrawPoint(renderer, mandelbrotImage.x, mandelbrotImage.y);
+		mandelbrotImage.advancePixel();
 
 		SDL_UpdateWindowSurface(window);
 		SDL_Delay(50);
