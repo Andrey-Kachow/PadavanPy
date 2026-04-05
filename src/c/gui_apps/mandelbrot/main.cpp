@@ -5,10 +5,12 @@
 #include <stdbool.h>
 #include <time.h>
 
-constexpr int SCREEN_WIDTH = 1000;
-constexpr int SCREEN_HEIGHT = 800;
+#include <iostream>
 
-constexpr int MAX_ITERATIONS = 0;
+constexpr int SCREEN_WIDTH = 1500;
+constexpr int SCREEN_HEIGHT = 900;
+
+constexpr int MAX_ITERATIONS = 65;
 
 class ComplexNumber {
 public:
@@ -18,15 +20,15 @@ public:
 	ComplexNumber(double r, double i) : r(r), i(i) {
 	}
 
-	operator+=(ComplexNumber& other) {
-		_r += other.r;
-		_i += other.i;
+	void operator+=(ComplexNumber& other) {
+		r += other.r;
+		i += other.i;
 	}
 
-	operator*=(ComplexNumber& other) {
+	void operator*=(ComplexNumber& other) {
 		const auto newReal = r * other.r - i * other.i;
-		_i = r * other.i + i * other.r;
-		_r = newReal;
+		i = r * other.i + i * other.r;
+		r = newReal;
 	}
 };
 
@@ -35,17 +37,18 @@ class MandelbrotImage {
 	int width;
 	int height;
 
-	ComplexNumber topLeft(-2.0, 2.0);
-	ComplexNumber bottomRight(2.0, -2.0);
+	ComplexNumber topLeft = { -1.8, 0.9 };
+	ComplexNumber bottomRight = { 0.45, -0.9 };
 
 	int pixelCounter = 0;
+
+public:
 	int x = 0;
 	int y = 0;
 
-public:
 	MandelbrotImage(int width, int height) : width(width), height(height) {}
 
-	advancePixel() {
+	void advancePixel() {
 		pixelCounter++;
 		x = pixelCounter % width;
 		y = pixelCounter / width;
@@ -56,7 +59,7 @@ public:
 	}
 	
 	ComplexNumber getNextNumber() {
-		double dx = -x * getRealRange() / width;
+		double dx = x * getRealRange() / width;
 		double dy = -y * getImaginaryRange() / height;
 		ComplexNumber nextNumber(dx, dy);
 		nextNumber += topLeft;
@@ -73,6 +76,37 @@ private:
 	}
 };
 
+/*
+	x' - x^2 + c
+*/
+int mandelbrot(ComplexNumber& c) {
+	ComplexNumber x = c;
+	int iterationCounter = 0;
+	while (x.r * x.r + x.i * x.i <= 4.0 && iterationCounter < MAX_ITERATIONS) {
+		x *= x;
+		x += c;
+		iterationCounter++;
+	}
+	return iterationCounter;
+}
+
+SDL_Window* window;
+SDL_Renderer* renderer;
+
+void updateRenderedColour(int iterations) {
+	int r, g, b;	
+	if (iterations == MAX_ITERATIONS) {
+    	r = g = b = 0;
+	} else {
+		// double smooth = iterations + 1 - log(log(abs(z))) / log(2.0);
+		double t = iterations / (double)MAX_ITERATIONS;
+
+		r = (Uint8)(9 * (1 - t) * t * t * t * 255);
+		g = (Uint8)(15 * (1 - t) * (1 - t) * t * t * 255);
+		b = (Uint8)(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255);
+	}
+	SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+}
 
 int main(int argc, char *argv[]) {
 
@@ -81,27 +115,22 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	SDL_Window* window; = SDL_CreateWindow("Conway's Game of Life", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Mandelbrot", SDL_WINDOWPOS_UNDEFINED, 
+		SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == NULL) {
 		printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
 		return 1;
 	}
-	screen_surface = SDL_GetWindowSurface(window);
-	
-	alive_color = SDL_MapRGB(screen_surface->format, 255, 255, 255);
-	dead_color = SDL_MapRGB(screen_surface->format, 0, 0, 0);
-	
-	SDL_FillRect(screen_surface, NULL, dead_color);
-	SDL_UpdateWindowSurface(window);
 	
 	MandelbrotImage mandelbrotImage(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
+	int frameCount = 0;
 	SDL_Event event;
 	bool quit = false;
 	while (quit == false) {
@@ -118,16 +147,19 @@ int main(int argc, char *argv[]) {
 		
 		ComplexNumber c = mandelbrotImage.getNextNumber();
 		int iterations = mandelbrot(c);
-		if (iterations < MAX_ITERATIONS) {
-			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-		} else {
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		}
+		updateRenderedColour(iterations);
 		SDL_RenderDrawPoint(renderer, mandelbrotImage.x, mandelbrotImage.y);
 		mandelbrotImage.advancePixel();
 
-		SDL_UpdateWindowSurface(window);
-		SDL_Delay(50);
+		if (mandelbrotImage.isDone()) {
+			std::cout << "Mandelbrot image is completed!";
+			SDL_RenderPresent(renderer);
+		}
+
+		if (frameCount % 100000 == 0) {
+			SDL_RenderPresent(renderer);
+		}
+		frameCount++;
 	}
 	
     SDL_DestroyWindow(window);
