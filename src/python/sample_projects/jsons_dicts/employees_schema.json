@@ -1,0 +1,152 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "employee"
+    ],
+    "properties": {
+      "employee": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "position",
+          "department",
+          "projects"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "projectId",
+                "projectName",
+                "startDate",
+                "tasks"
+              ],
+              "properties": {
+                "tasks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "taskId",
+                      "title",
+                      "status",
+                      "details"
+                    ],
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "taskId": {
+                        "type": "string"
+                      },
+                      "details": {
+                        "type": "object",
+                        "required": [
+                          "hoursSpent",
+                          "technologiesUsed",
+                          "expectedCompletion"
+                        ],
+                        "properties": {
+                          "hoursSpent": {
+                            "type": "number"
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "expectedCompletion": {
+                            "type": "string",
+                            "format": "date"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "projectId": {
+                  "type": "string"
+                },
+                "startDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "projectName": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "department": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "manager"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "manager": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "contact"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "contact": {
+                    "type": "object",
+                    "required": [
+                      "email",
+                      "phone"
+                    ],
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "phone": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "title": "EmployeeProjectSchema",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
